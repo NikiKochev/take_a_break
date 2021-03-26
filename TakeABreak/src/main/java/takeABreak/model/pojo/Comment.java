@@ -1,22 +1,43 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
+
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 
 @NoArgsConstructor
 @Setter
 @Getter
-@Component
+@Entity
+@Table(name = "comments")
 public class Comment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String content;
-    private Post post;
-    private Comment parent;
-    private User user;
     private LocalDate deletedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
+
+    @ManyToOne(cascade={CascadeType.ALL})
+    @JoinColumn(name="parent_id")
+    private Comment parent;
+
+    @OneToMany(mappedBy="parent")
+    @JsonManagedReference
+    private List<Comment> subComments;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User user;
+
 }

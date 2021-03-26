@@ -1,0 +1,46 @@
+package takeABreak.model.pojo;
+
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+
+import javax.persistence.*;
+import java.util.Objects;
+
+@NoArgsConstructor
+@Setter
+@Getter
+@Entity
+@Table(name = "format_type")
+
+public class FormatType  {
+
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "content_id")
+    private Content content;
+
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "size_id")
+    private Size size;
+
+    private String url;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FormatType that = (FormatType) o;
+        return Objects.equals(content, that.content) &&
+                Objects.equals(size, that.size) &&
+                Objects.equals(url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(content, size, url);
+    }
+}
