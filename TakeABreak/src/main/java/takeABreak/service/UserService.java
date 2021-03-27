@@ -1,21 +1,19 @@
 package takeABreak.service;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -75,5 +73,53 @@ public class UserService {
         System.out.println(user.get().getAvatar());
         File file = new File(user.get().getAvatar());
         return Files.readAllBytes(file.toPath());
+    }
+
+    public UserDeleteResponseDTO deleteDate(User user) {
+        user.setDeletedAt(LocalDate.now());
+        user.setAvatar(null);
+        user.setCity(null);
+        user.setCountry(null);
+        user.setEmail(null);
+        user.setFirstName(null);
+        user.setLastName(null);
+        repository.save(user);
+        return new UserDeleteResponseDTO(user);
+    }
+    public boolean isItUserExist(User user){
+        if(repository.findById(user.getId()).isPresent()){
+            if(repository.findById(user.getId()).get().getDeletedAt() == null){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public LoginUserResponseDTO editUser(User loggedUser, EditResponseUserDTO userDTO) {
+        if(userDTO.getAge() != 0){
+            loggedUser.setAge(userDTO.getAge());
+        }
+        if(userDTO.getFirstName() != null){
+            loggedUser.setFirstName(userDTO.getFirstName());
+        }
+        if(userDTO.getLastName() != null){
+            loggedUser.setLastName(userDTO.getLastName());
+        }
+        if(userDTO.getEmail() != null){
+            loggedUser.setEmail(userDTO.getEmail());
+        }
+        if(userDTO.getCity() != null){
+            loggedUser.setCity(userDTO.getCity());
+        }
+        if(userDTO.getCountry() != null){
+            loggedUser.setCountry(userDTO.getCountry());
+        }
+        if(userDTO.getPassword() != null){
+            PasswordEncoder encoder = new BCryptPasswordEncoder();
+            loggedUser.setPassword(encoder.encode(userDTO.getPassword()));
+        }
+        repository.save(loggedUser);// дали да се пусне в друга нишка да се запише ако се сменя емейла,
+        // която да чака да се потвърди и тогава да се запише в базата данни
+        return new LoginUserResponseDTO(loggedUser);
     }
 }

@@ -1,12 +1,10 @@
 package takeABreak.model.pojo;
 
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 @NoArgsConstructor
@@ -15,7 +13,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "format_type")
 
-public class FormatType  {
+public class FormatType  implements Serializable {
 
     @Id
     @ManyToOne

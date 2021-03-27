@@ -71,5 +71,19 @@ public class UserController extends AbstractController{
         return userService.getAvatar(repo.findById(id));
     }
 
+    @DeleteMapping("/user/{id}")
+    public UserDeleteResponseDTO deleteUser(@PathVariable int id,HttpSession session){
+        User user = sessionManager.getLoggedUser(session);
+        if(user.getId() != id){
+            throw new BadRequestException("You can't delete other profile");
+        }
+        return userService.deleteDate(user);
+    }
+
+    @PutMapping("/user/{id}")
+    public LoginUserResponseDTO editUser(@RequestBody EditResponseUserDTO userDTO, HttpSession session){
+        return userService.editUser(sessionManager.getLoggedUser(session), userDTO);
+    }
+
 
 }

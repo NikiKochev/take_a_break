@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
-
 import javax.persistence.*;
 import java.util.List;
 
@@ -20,7 +18,6 @@ public class Size {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
-
 
     @OneToMany (mappedBy = "size")
     @JsonManagedReference

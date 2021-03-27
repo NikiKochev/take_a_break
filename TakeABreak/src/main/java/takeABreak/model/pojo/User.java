@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 import takeABreak.model.dto.RegisterRequestUserDTO;
-
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,22 +31,21 @@ public class User {
     private String city;
     private String avatar; // url of avatar
 
-
     @OneToMany (mappedBy = "user")
     @JsonManagedReference
     List<Post> posts;
 
-
     @OneToMany (mappedBy = "user")
     @JsonManagedReference
     private List<Comment> comments;
-
 
     public User(RegisterRequestUserDTO dto){
         firstName = dto.getFirstName();
         lastName = dto.getLastName();
         email = dto.getEmail();
         password = dto.getPassword();
+        age = dto.getAge();
+        createdAt = LocalDate.now();
     }
 
 }

@@ -22,7 +22,7 @@ public class Comment {
     private int id;
 
     private String content;
-    private LocalDate deletedAt;
+    private LocalDate createdAt;
 
     @ManyToOne
     @JoinColumn(name = "post_id")
