@@ -4,13 +4,17 @@ package takeABreak.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import takeABreak.exceptions.BadRequestException;
+import takeABreak.exceptions.NotFoundException;
+import takeABreak.model.dao.CommentsDAO;
 import takeABreak.model.dto.*;
 import takeABreak.model.pojo.Comment;
+import takeABreak.model.pojo.User;
 import takeABreak.model.repository.CommentRepository;
 import takeABreak.model.repository.PostRepository;
 import takeABreak.model.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 public class CommentService {
@@ -21,6 +25,8 @@ public class CommentService {
     private PostRepository pRepository;
     @Autowired
     private CommentRepository cRepository;
+    @Autowired
+    private CommentsDAO commentsDao;
 
     public AddingResponseCommentsDTO addComment(AddingRequestCommentsDTO commentsDTO) {
         if(!uRepository.findById(commentsDTO.getUserId()).isPresent()){
@@ -75,5 +81,36 @@ public class CommentService {
         }
         cRepository.delete(cRepository.findById(commentDTO.getCommentId()).get());
         return new DeleteResponseCommentDTO("Successful deleted");
+    }
+
+    public FindResponseCommentDTO findComments(int id, int page, int perpage) {
+        if(!uRepository.findById(id).isPresent()){
+            throw new BadRequestException("No such person");
+        }
+        return new FindResponseCommentDTO(commentsDao.getCommentsByUser(id, page, perpage));
+    }
+
+    public FindResponseCommentDTO findCommentsForPost(int id, int page, int perpage) {
+        return new FindResponseCommentDTO(commentsDao.getCommentsByPost(id, page, perpage));
+    }
+
+    public GetByIdResponseCommentDTO getById(int id) {
+        Optional<Comment> comment = cRepository.findById(id);
+        if(!comment.isPresent()){
+            throw new NotFoundException("Comment not found");
+        }
+        return new GetByIdResponseCommentDTO(comment.get(),true);
+    }
+
+    public GetByIdResponseCommentDTO likeComment(Comment comment, User loggedUser) {
+        comment.getLikers().add(loggedUser);
+        cRepository.save(comment);
+        return new GetByIdResponseCommentDTO(comment,true);
+    }
+
+    public GetByIdResponseCommentDTO dislikeComment(Comment comment, User loggedUser) {
+        comment.getDislikers().add(loggedUser);
+        cRepository.save(comment);
+        return new GetByIdResponseCommentDTO(comment,false);
     }
 }

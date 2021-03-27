@@ -1,5 +1,6 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,5 +40,12 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User user;
+
+    @ManyToMany(mappedBy = "likedComments")
+    @JsonBackReference
+    private List<User> likers;
+    @ManyToMany(mappedBy = "dislikedComments")
+    @JsonBackReference
+    private List<User> dislikers;
 
 }

@@ -85,5 +85,10 @@ public class UserController extends AbstractController{
         return userService.editUser(sessionManager.getLoggedUser(session), userDTO);
     }
 
+    @PostMapping("/users/search")
+    public SearchForUsersResponseDTO findUsers(@RequestBody SearchForUsersRequestDTO searchDTO){
+        return userService.findUsers(searchDTO);
+    }
+
 
 }

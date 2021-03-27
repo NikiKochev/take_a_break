@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotFoundException;
+import takeABreak.model.dao.UserDAO;
 import takeABreak.model.dto.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
@@ -21,6 +22,8 @@ public class UserService {
 
     @Autowired
     private UserRepository repository;
+    @Autowired
+    private UserDAO userDAO;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
@@ -121,5 +124,8 @@ public class UserService {
         repository.save(loggedUser);// дали да се пусне в друга нишка да се запише ако се сменя емейла,
         // която да чака да се потвърди и тогава да се запише в базата данни
         return new LoginUserResponseDTO(loggedUser);
+    }
+    public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
+        return new SearchForUsersResponseDTO(userDAO.findBy(searchDTO));
     }
 }

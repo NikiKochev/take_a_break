@@ -39,6 +39,23 @@ public class User {
     @JsonManagedReference
     private List<Comment> comments;
 
+    @ManyToMany
+    @JoinTable(
+            name = "users_like_coments",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn (name = "coments_id")}
+    )
+    @JsonManagedReference
+    private List<Comment> likedComments;
+    @ManyToMany
+    @JoinTable(
+            name = "users_dislike_coments",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn (name = "coments_id")}
+    )
+    @JsonManagedReference
+    private List<Comment> dislikedComments;
+
     public User(RegisterRequestUserDTO dto){
         firstName = dto.getFirstName();
         lastName = dto.getLastName();
