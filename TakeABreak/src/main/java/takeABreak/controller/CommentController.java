@@ -76,7 +76,7 @@ public class CommentController {
         return commentService.getById(id);
     }
 
-    @PostMapping("/comments/like/{id}")
+    @PostMapping("/comments/dislike/{id}")
     public GetByIdResponseCommentDTO dislike(@PathVariable int id, HttpSession session){
         Optional<Comment> comment = repository.findById(id);
         if(! comment.isPresent()){
