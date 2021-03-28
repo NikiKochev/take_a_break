@@ -27,10 +27,12 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
+    @JsonBackReference
     private Post post;
 
     @ManyToOne(cascade={CascadeType.ALL})
     @JoinColumn(name="parent_id")
+    @JsonBackReference
     private Comment parent;
 
     @OneToMany(mappedBy="parent")
@@ -39,6 +41,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
+    @JsonBackReference
     private User user;
 
     @ManyToMany(mappedBy = "likedComments")

@@ -1,21 +1,25 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
-import takeABreak.model.pojo.User;
-
-import java.util.List;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class SearchForUsersResponseDTO {
+public class UploadAvatarDTO {
 
-    private List<User> users;
+    private String url;
+    private int ownerId;
 
+    /*
+    {
+    image:"url"
+    ownerId:5
+    }
+    */
 }

@@ -8,7 +8,7 @@ import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dao.UserDAO;
-import takeABreak.model.dto.*;
+import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import java.io.File;
@@ -73,7 +73,6 @@ public class UserService {
         if (!user.isPresent()) {
             throw new NotFoundException("Not such avatar");
         }
-        System.out.println(user.get().getAvatar());
         File file = new File(user.get().getAvatar());
         return Files.readAllBytes(file.toPath());
     }
@@ -88,14 +87,6 @@ public class UserService {
         user.setLastName(null);
         repository.save(user);
         return new UserDeleteResponseDTO(user);
-    }
-    public boolean isItUserExist(User user){
-        if(repository.findById(user.getId()).isPresent()){
-            if(repository.findById(user.getId()).get().getDeletedAt() == null){
-                return true;
-            }
-        }
-        return false;
     }
 
     public LoginUserResponseDTO editUser(User loggedUser, EditResponseUserDTO userDTO) {

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.BadRequestException;
-import takeABreak.model.dto.*;
+import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.UserService;
@@ -67,7 +67,7 @@ public class UserController extends AbstractController{
 
     @GetMapping(value = "/users/avatar/{id}", produces = "image/*")
     public byte[] downloadById(@PathVariable int id, HttpSession ses) throws IOException {
-        // todo незнам дали да се прави проверка за сесията !!!!!
+        sessionManager.getLoggedUser(ses);
         return userService.getAvatar(repo.findById(id));
     }
 
@@ -88,7 +88,6 @@ public class UserController extends AbstractController{
     @PostMapping("/users/search")
     public SearchForUsersResponseDTO findUsers(@RequestBody SearchForUsersRequestDTO searchDTO){
         return userService.findUsers(searchDTO);
-    }
-
+    }//todo
 
 }

@@ -1,4 +1,4 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.comments;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.comments;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,9 @@ public class EditResponseCommentDTO {
 
     public EditResponseCommentDTO(Comment comment) {
         ownerId = comment.getUser().getId();
-        parentId = comment.getParent().getId();
+        if(comment.getParent() != null) {
+            parentId = comment.getParent().getId();
+        }
         postId = comment.getPost().getId();
         content= comment.getContent();
     }

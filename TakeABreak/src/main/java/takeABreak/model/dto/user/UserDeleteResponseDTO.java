@@ -1,25 +1,22 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.pojo.User;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class UploadAvatarDTO {
+public class UserDeleteResponseDTO {
 
-    private String url;
-    private int ownerId;
+    private String msg;
 
-    /*
-    {
-    image:"url"
-    ownerId:5
+    public UserDeleteResponseDTO(User user) {
+        msg = "User deleted at: "+ user.getDeletedAt();
     }
-    */
 }

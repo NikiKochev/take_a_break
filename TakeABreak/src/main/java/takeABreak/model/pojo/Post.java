@@ -1,5 +1,6 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,10 +25,12 @@ public class Post {
 
     @ManyToOne
     @JoinColumn(name = "categories_id")
+    @JsonBackReference
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
+    @JsonBackReference
     private User user;
 
     @OneToMany (mappedBy = "post")
@@ -36,6 +39,7 @@ public class Post {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "content_id", referencedColumnName = "id")
+    @JsonBackReference
     private Content content;
 
 }

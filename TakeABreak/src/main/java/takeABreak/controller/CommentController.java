@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotAuthorizedException;
 import takeABreak.exceptions.NotFoundException;
-import takeABreak.model.dto.*;
+import takeABreak.model.dto.comments.*;
 import takeABreak.model.pojo.Comment;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.CommentRepository;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @RestController
-public class CommentController {
+public class CommentController extends AbstractController{
     @Autowired
     private SessionManager sessionManager;
     @Autowired
@@ -22,22 +22,19 @@ public class CommentController {
     @Autowired
     private CommentRepository repository;
 
-    @PostMapping("/comments/{id}")
-    public AddingResponseCommentsDTO addComment (@RequestBody AddingRequestCommentsDTO commentsDTO, HttpSession session, @PathVariable int id){
-        User u = sessionManager.getLoggedUser(session);
-        if(commentsDTO.getPostId() != id){
-            throw new BadRequestException("You cannot write comments to different post");
+    @PostMapping("/comments")
+    public AddingResponseCommentsDTO add(@RequestBody AddingRequestCommentsDTO commentsDTO, HttpSession session ){
+        if(sessionManager.getLoggedUser(session).getId() != commentsDTO.getUserId()){
+            throw new NotAuthorizedException("You cannot write comment from different name");
         }
         return commentService.addComment(commentsDTO);
     }
 
-    @PutMapping("/coments")
+    @PutMapping("/comments")
     public EditResponseCommentDTO editComment(@RequestBody EditRequestCommentDTO commentDTO, HttpSession session){
-
         if(sessionManager.getLoggedUser(session).getId() != commentDTO.getUserId()){
             throw new BadRequestException("You cannot write comment from different name");
         }
-        //да видя дали сесията е активна ако не да се логва
         return commentService.editComment(commentDTO);
     }
 
@@ -49,14 +46,14 @@ public class CommentController {
         }
         return commentService.deleteComment(commentDTO);
     }
-    @GetMapping("/comments/user/{id}/search?page=1&perpage=20")
-    public FindResponseCommentDTO getByUserId(@RequestParam int page , @RequestParam int perpage, @PathVariable int id ){
-        return commentService.findComments(id, page, perpage);
+    @GetMapping("/comments/user/{id}")
+    public FindResponseCommentDTO getByUserId(@PathVariable int id ){
+        return commentService.findComments(id);
     }
 
-    @GetMapping("/comments/post/{id}/search?page=1&perpage=20")
-    public FindResponseCommentDTO getByPostId(@RequestParam int page , @RequestParam int perpage, @PathVariable int id ){
-        return commentService.findCommentsForPost(id, page, perpage);
+    @GetMapping("/comments/post/{id}")
+    public FindResponseCommentDTO getByPostId(@PathVariable int id ){
+        return commentService.findCommentsForPost(id);
     }
 
     @PostMapping("/comments/like/{id}")
@@ -64,9 +61,6 @@ public class CommentController {
         Optional<Comment> comment = repository.findById(id);
         if(! comment.isPresent()){
             throw new NotFoundException("Not such comment");
-        }
-        if(comment.get().getLikers().contains(sessionManager.getLoggedUser(session))){
-            throw  new BadRequestException("User already liked this comment");
         }
         return commentService.likeComment(comment.get(), sessionManager.getLoggedUser(session));
     }
@@ -81,9 +75,6 @@ public class CommentController {
         Optional<Comment> comment = repository.findById(id);
         if(! comment.isPresent()){
             throw new NotFoundException("Not such comment");
-        }
-        if(comment.get().getDislikers().contains(sessionManager.getLoggedUser(session))){
-            throw  new BadRequestException("User already disliked this comment");
         }
         return commentService.dislikeComment(comment.get(), sessionManager.getLoggedUser(session));
     }

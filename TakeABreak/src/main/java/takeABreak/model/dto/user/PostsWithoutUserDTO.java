@@ -1,9 +1,11 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.user;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.dto.CategoryResponseDTO;
+import takeABreak.model.dto.ContentResponseDTO;
 import takeABreak.model.pojo.Post;
 
 import java.time.LocalDate;

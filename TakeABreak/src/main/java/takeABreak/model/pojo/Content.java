@@ -1,5 +1,6 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,10 +21,12 @@ public class Content {
     private long id;
 
     @OneToOne(mappedBy = "content")
+    @JsonManagedReference
     private Post post;
 
     @ManyToOne
     @JoinColumn(name = "file_type_id")
+    @JsonBackReference
     private FileType fileType;
 
 

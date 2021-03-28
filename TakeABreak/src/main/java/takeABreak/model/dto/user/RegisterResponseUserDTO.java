@@ -1,4 +1,4 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.user;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +22,6 @@ public class RegisterResponseUserDTO {
 
 
     public RegisterResponseUserDTO(User user) {
-
         id = user.getId();
         firstName = user.getFirstName();
         lastName = user.getLastName();

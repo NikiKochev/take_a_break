@@ -1,5 +1,6 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,11 +19,13 @@ public class FormatType  implements Serializable {
     @Id
     @ManyToOne
     @JoinColumn(name = "content_id")
+    @JsonBackReference
     private Content content;
 
     @Id
     @ManyToOne
     @JoinColumn(name = "size_id")
+    @JsonBackReference
     private Size size;
 
     private String url;

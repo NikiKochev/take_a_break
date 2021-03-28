@@ -1,4 +1,4 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.comments;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class AddingRequestCommentsDTO {
 
     private int userId;
-    private int parentId;
     private int postId;
+    private int parentId;
     private String content;
 
     /*

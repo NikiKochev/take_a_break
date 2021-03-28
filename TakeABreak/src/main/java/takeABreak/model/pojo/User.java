@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import takeABreak.model.dto.RegisterRequestUserDTO;
+import takeABreak.model.dto.user.RegisterRequestUserDTO;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;

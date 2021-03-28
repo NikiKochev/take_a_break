@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import takeABreak.exceptions.NotFoundException;
-import takeABreak.model.dto.SearchForUsersRequestDTO;
+import takeABreak.model.dto.user.SearchForUsersRequestDTO;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 

@@ -1,4 +1,4 @@
-package takeABreak.model.dto;
+package takeABreak.model.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,16 +7,15 @@ import lombok.Setter;
 import org.springframework.stereotype.Component;
 import takeABreak.model.pojo.User;
 
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class UserDeleteResponseDTO {
+public class SearchForUsersResponseDTO {
 
-    private String msg;
+    private List<User> users;
 
-    public UserDeleteResponseDTO(User user) {
-        msg = "User deleted at: "+ user.getDeletedAt();
-    }
 }
