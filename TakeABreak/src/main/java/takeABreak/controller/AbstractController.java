@@ -3,10 +3,7 @@ package takeABreak.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import takeABreak.exceptions.AuthenticationException;
-import takeABreak.exceptions.BadRequestException;
-import takeABreak.exceptions.NotAuthorizedException;
-import takeABreak.exceptions.NotFoundException;
+import takeABreak.exceptions.*;
 
 public class AbstractController {
 
@@ -33,6 +30,13 @@ public class AbstractController {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleBadRequest(NotFoundException e){
+        //todo Json Object for a return whit msg
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(InitException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleInitException(InitException e){
         //todo Json Object for a return whit msg
         return e.getMessage();
     }
