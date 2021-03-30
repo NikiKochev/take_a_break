@@ -42,4 +42,12 @@ public class Post {
     @JsonBackReference
     private Content content;
 
+    @ManyToMany(mappedBy = "likedPosts")
+    @JsonBackReference
+    private List<User> likers;
+
+    @ManyToMany(mappedBy = "dislikedPosts")
+    @JsonBackReference
+    private List<User> dislikers;
+
 }

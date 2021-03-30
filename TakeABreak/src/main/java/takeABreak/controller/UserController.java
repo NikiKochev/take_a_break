@@ -90,4 +90,9 @@ public class UserController extends AbstractController{
         return userService.findUsers(searchDTO);
     }//todo
 
+    @GetMapping("/verify")
+    public LoginUserResponseDTO verifyEmail(){
+        //todo
+        return null;
+    }
 }

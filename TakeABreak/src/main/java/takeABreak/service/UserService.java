@@ -1,5 +1,6 @@
 package takeABreak.service;
 
+import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,8 @@ public class UserService {
     private UserRepository repository;
     @Autowired
     private UserDao userDAO;
+    @Autowired
+    private EmailService emailService;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
@@ -40,7 +43,12 @@ public class UserService {
         PasswordEncoder encoder = new BCryptPasswordEncoder();
         userDTO.setPassword(encoder.encode(userDTO.getPassword()));
         User user = new User(userDTO);
-        RegisterResponseUserDTO responseUserDTO = new RegisterResponseUserDTO(repository.save(user));
+        String randomCode = RandomString.make(64);
+        user.setVerification(randomCode);
+        repository.save(user);
+        Thread t= new Thread(() -> emailService.sendSimpleMessage(user));
+        t.start();
+        RegisterResponseUserDTO responseUserDTO = new RegisterResponseUserDTO(user);
         return responseUserDTO;
     }
 

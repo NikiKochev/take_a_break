@@ -1,0 +1,26 @@
+package takeABreak.model.dto.post;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
+import takeABreak.model.pojo.Post;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+@Getter
+@Setter
+@NoArgsConstructor
+public class GetAllByResponsePostDTO {
+
+    private List<GetByIdResponsePostDTO> posts;
+
+    public GetAllByResponsePostDTO(List<Post> posts) {
+        this.posts = new ArrayList<>();
+        for (Post p : posts){
+            this.posts.add(new GetByIdResponsePostDTO(p));
+        }
+    }
+}

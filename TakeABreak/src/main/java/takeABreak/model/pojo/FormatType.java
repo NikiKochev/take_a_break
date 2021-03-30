@@ -30,7 +30,11 @@ public class FormatType  implements Serializable {
 
     private String url;
 
-    @Override
+    public FormatType(Content content, String absolutePath, Size byId) {
+        size = byId;
+    }
+
+        @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

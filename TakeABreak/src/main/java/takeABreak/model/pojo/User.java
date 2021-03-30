@@ -56,6 +56,23 @@ public class User {
     @JsonManagedReference
     private List<Comment> dislikedComments;
 
+    @ManyToMany
+    @JoinTable(
+            name = "users_like_posts",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn (name = "post_id")}
+    )
+    @JsonManagedReference
+    private List<Post> likedPosts;
+    @ManyToMany
+    @JoinTable(
+            name = "users_dislike_posts",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn (name = "post_id")}
+    )
+    @JsonManagedReference
+    private List<Post> dislikedPosts;
+
     public User(RegisterRequestUserDTO dto){
         firstName = dto.getFirstName();
         lastName = dto.getLastName();
@@ -64,5 +81,7 @@ public class User {
         age = dto.getAge();
         createdAt = LocalDate.now();
     }
+
+
 
 }
