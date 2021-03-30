@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @Setter
 @Getter
-public class UserDAO {
+public class UserDao {
     @Autowired
     private UserRepository repository;
 

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotFoundException;
-import takeABreak.model.dao.UserDAO;
+import takeABreak.model.dao.UserDao;
 import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
@@ -23,7 +23,7 @@ public class UserService {
     @Autowired
     private UserRepository repository;
     @Autowired
-    private UserDAO userDAO;
+    private UserDao userDAO;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
