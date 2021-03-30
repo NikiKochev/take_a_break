@@ -3,14 +3,16 @@ package takeABreak.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import takeABreak.model.pojo.User;
 
-@Component
+@Service
 public class EmailService {
     private final static String FROM = "nikolaykochev@gmail.com";
-    @Autowired
-    private JavaMailSender emailSender;
+
+    private JavaMailSender emailSender = new JavaMailSenderImpl();
 
     public void sendSimpleMessage(User user) {
         String to = user.getEmail();

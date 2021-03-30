@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
-import takeABreak.model.dto.categorory.CategoryResponseDTO;
+import takeABreak.model.dto.categorory.SingleCategoryResponseDTO;
 import takeABreak.model.dto.user.UserResponseDTO;
 import takeABreak.model.pojo.Post;
 
@@ -19,7 +19,7 @@ public class AddingResponsePostDTO {
     private String title;
     private String description;
     private LocalDate createdAt;
-    private CategoryResponseDTO category;
+    private SingleCategoryResponseDTO category;
     private UserResponseDTO user;
 
 
@@ -28,7 +28,7 @@ public class AddingResponsePostDTO {
         title = post.getTitle();
         description = post.getDescription();;
         createdAt = post.getCreatedAt();
-        category = new CategoryResponseDTO(post.getCategory());
+        category = new SingleCategoryResponseDTO(post.getCategory());
         user = new UserResponseDTO(post.getUser());
 
     }
