@@ -9,11 +9,11 @@ import takeABreak.model.pojo.Category;
 @NoArgsConstructor
 @Setter
 @Getter
-public class CategoryResponseDTO {
+public class SingleCategoryResponseDTO {
     private long id;
     private String name;
 
-    public CategoryResponseDTO(Category category) {
+    public SingleCategoryResponseDTO(Category category) {
         id= category.getId();;
         name= category.getName();
     }

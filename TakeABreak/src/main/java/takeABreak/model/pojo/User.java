@@ -30,6 +30,7 @@ public class User {
     private String country;
     private String city;
     private String avatar; // url of avatar
+    private boolean isAdult;
 
     @OneToMany (mappedBy = "user")
     @JsonManagedReference
@@ -80,6 +81,8 @@ public class User {
         password = dto.getPassword();
         age = dto.getAge();
         createdAt = LocalDate.now();
+        isAdult = false;
+
     }
 
 

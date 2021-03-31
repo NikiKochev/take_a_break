@@ -15,12 +15,12 @@ import java.util.List;
 @Getter
 public class AllCategoryResponseDTO {
 
-    private List<CategoryResponseDTO> categories;
+    private List<SingleCategoryResponseDTO> categories;
 
     public AllCategoryResponseDTO(List<Category> categories) {
         this.categories = new ArrayList<>();
         for (Category c : categories){
-            this.categories.add(new CategoryResponseDTO(c));
+            this.categories.add(new SingleCategoryResponseDTO(c));
         }
     }
 }

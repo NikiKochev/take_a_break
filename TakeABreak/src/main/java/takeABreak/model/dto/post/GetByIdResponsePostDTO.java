@@ -5,8 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 import takeABreak.model.dto.ContentResponseDTO;
-import takeABreak.model.dto.categorory.CategoryResponseDTO;
-import takeABreak.model.dto.comment.EditRequestCommentDTO;
+import takeABreak.model.dto.categorory.SingleCategoryResponseDTO;
+import takeABreak.model.dto.comments.EditRequestCommentDTO;
 import takeABreak.model.dto.user.UserResponseDTO;
 import takeABreak.model.pojo.Comment;
 import takeABreak.model.pojo.Post;
@@ -25,7 +25,7 @@ public class GetByIdResponsePostDTO {
     private String title;
     private String description;
     private LocalDate createdAt;
-    private CategoryResponseDTO category;
+    private SingleCategoryResponseDTO category;
     private UserResponseDTO user;
     private List<EditRequestCommentDTO> commentList;
     private ContentResponseDTO content;
@@ -38,7 +38,7 @@ public class GetByIdResponsePostDTO {
         title = post.getTitle();
         description = post.getDescription();
         createdAt = post.getCreatedAt();
-        category = new CategoryResponseDTO(post.getCategory());
+        category = new SingleCategoryResponseDTO(post.getCategory());
         user = new UserResponseDTO(post.getUser());
         content = new ContentResponseDTO(post.getContent());
         likers = post.getLikers().size();

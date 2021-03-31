@@ -30,6 +30,9 @@ public class UserController extends AbstractController{
 
     @PutMapping("/user")
     public RegisterResponseUserDTO register(@RequestBody RegisterRequestUserDTO userDTO){
+        System.out.println(userDTO.getEmail());
+        System.out.println(userDTO.getAaa());
+        System.out.println(userDTO.getPassword());
         //todo validation http 
         return userService.addUser(userDTO);
     }

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.pojo.Comment;
 
 @Component
 @NoArgsConstructor
@@ -14,6 +15,9 @@ public class EditRequestCommentDTO {
     private int userId;
     private int commentId;
     private String content;
+
+    public EditRequestCommentDTO(Comment c) {
+    }
 
     /*{
     "user_id" : 3,

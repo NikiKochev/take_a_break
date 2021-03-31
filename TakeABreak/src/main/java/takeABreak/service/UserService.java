@@ -29,7 +29,7 @@ public class UserService {
     private EmailService emailService;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
-        if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
+        if (!userDTO.getPassword().equals(userDTO.getAaa())) {
             throw new BadRequestException("Passwords are not equals");
         }
         if (!userDTO.getPassword().equals(userDTO.getPassword().toLowerCase())
