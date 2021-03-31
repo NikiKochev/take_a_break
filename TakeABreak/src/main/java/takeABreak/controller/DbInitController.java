@@ -8,7 +8,7 @@ import takeABreak.service.InitService;
 
 @RestController
 public class DbInitController extends AbstractController{
-
+    // todo този клас трябва да го премахнем преди презентацията
     @Autowired
     InitService initService;
 

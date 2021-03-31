@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 public class InitService {
-
+// todo този клас трябва да го премахнем преди презентацията
     private Gson gson = new Gson();
 
     @Autowired

@@ -5,16 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.UserService;
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 @RestController
 public class UserController extends AbstractController{
@@ -30,9 +28,6 @@ public class UserController extends AbstractController{
 
     @PutMapping("/user")
     public RegisterResponseUserDTO register(@RequestBody RegisterRequestUserDTO userDTO){
-        System.out.println(userDTO.getEmail());
-        System.out.println(userDTO.getAaa());
-        System.out.println(userDTO.getPassword());
         //todo validation http 
         return userService.addUser(userDTO);
     }
@@ -50,15 +45,17 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/user/{id}/avatar")
-    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses) throws IOException {
+    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses)  {
         User user = sessionManager.getLoggedUser(ses);
         if(user.getId() != id){
             throw new BadRequestException("You can't post avatar to other users");
         }
         File f = new File(filePath + File.separator + id+"_"+System.nanoTime() +".png");
-        OutputStream os = new FileOutputStream(f);
-        os.write(file.getBytes());
-        os.close();
+        try(OutputStream os = new FileOutputStream(f);) {
+            os.write(file.getBytes());
+        } catch (IOException e) {
+            throw new AuthenticationException("Sorry, we could not upload this file. Try saving it in a different format and upload again");
+        }
         UploadAvatarDTO avatar = userService.addAvatar(f, repo.findById(id).get());
         return avatar;
     }

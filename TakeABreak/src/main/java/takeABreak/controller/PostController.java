@@ -53,7 +53,7 @@ public class PostController extends AbstractController{
 
     @PutMapping("/posts/{id}/type")
     public AddingContentToPostResponsePostDTO addContentToPost(@PathVariable(name = "id") int typeId, @RequestPart MultipartFile file, HttpSession ses) throws IOException {
-        User user = sessionManager.getLoggedUser(ses);
+        sessionManager.getLoggedUser(ses);
         Optional<FileType> t = typeRepository.findById(typeId);
         if(!t.isPresent()){
             throw new NotFoundException("file type not found");
@@ -104,11 +104,7 @@ public class PostController extends AbstractController{
 
     @GetMapping("posts/{id}")
     public GetByIdResponsePostDTO getById(@PathVariable int id){
-        Optional<Post> p = postRepository.findById(id);
-        if(!p.isPresent()){
-            throw new BadRequestException("no such a post");
-        }
-        return new GetByIdResponsePostDTO(p.get());
+        return postService.getById(id);
     }
 
     @GetMapping("posts/{id}/users")
@@ -118,7 +114,7 @@ public class PostController extends AbstractController{
             throw new BadRequestException("No such a person");
         }
         List<Post> posts = postRepository.findAllByUser(u.get());
-        return new GetAllByResponsePostDTO(posts);
+        return new GetAllByResponsePostDTO(posts); // todo page perpage
     }
 
     @GetMapping("posts/{id}/categories")
@@ -128,20 +124,19 @@ public class PostController extends AbstractController{
             throw new BadRequestException("No such a category");
         }
         List<Post> posts = postRepository.findAllByCategory(c.get());
-        return new GetAllByResponsePostDTO(posts);
+        return new GetAllByResponsePostDTO(posts);// todo page perpage
     }
 
-    @GetMapping("/allposts")
+    @GetMapping("/posts")
     public GetAllByResponsePostDTO getAll(){
         List<Post> posts = postRepository.findAll();
-        return new GetAllByResponsePostDTO(posts);
+        return new GetAllByResponsePostDTO(posts);// todo page perpage
     }
 
-    @GetMapping("/allcategories")
-    public AllCategoryResponseDTO getAllCategories(){
-        List<Category> categories = categoryRepository.findAll();
-        return new AllCategoryResponseDTO(categories);
+    @GetMapping("/posts/search")
+    public SearchResponsePostDTO findPosts(){
+        //
+        return null;
     }
-
 
 }

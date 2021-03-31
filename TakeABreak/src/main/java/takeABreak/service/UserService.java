@@ -61,7 +61,7 @@ public class UserService {
 
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        PasswordEncoder encoder = new BCryptPasswordEncoder();;
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
         }
@@ -126,5 +126,9 @@ public class UserService {
     }
     public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
         return new SearchForUsersResponseDTO(userDAO.findBy(searchDTO));
+    }
+
+    public void save(User user) {
+        repository.save(user);
     }
 }

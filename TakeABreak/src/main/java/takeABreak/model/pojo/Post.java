@@ -39,7 +39,7 @@ public class Post {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "content_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonManagedReference
     private Content content;
 
     @ManyToMany(mappedBy = "likedPosts")

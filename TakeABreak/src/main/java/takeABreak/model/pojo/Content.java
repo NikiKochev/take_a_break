@@ -16,12 +16,13 @@ import java.util.List;
 @Table(name = "content")
 public class Content {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @OneToOne(mappedBy = "content")
-    @JsonManagedReference
+    @JsonBackReference
     private Post post;
 
     @ManyToOne

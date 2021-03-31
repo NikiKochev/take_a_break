@@ -19,17 +19,17 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
     @Autowired
-    private CategoryRepository categoryRepository;
+    private CategoryService categoryService;
     @Autowired
-    private SizeRepository sizeRepository;
+    private SizeService sizeService;
     @Autowired
-    private ContentRepository contentRepository;
+    private ContentService contentService;
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
 
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user) {
-        Optional<Category> cat = categoryRepository.findById(postDTO.getCategoryId());
+        Optional<Category> cat = categoryService.findById(postDTO.getCategoryId());
         if(!cat.isPresent()){
             throw new NotFoundException("Not such a category");
         }
@@ -37,15 +37,12 @@ public class PostService {
         if(user.getId() != postDTO.getUserId()){
             throw new BadRequestException("Not the same person");
         }
-        Optional<Content> content = contentRepository.findById(postDTO.getContentId());
-        if(!content.isPresent()){
-            throw new BadRequestException("mo picture or video to upload");
-        }
+        Content content = contentService.findById(postDTO.getContentId());
         Post post = new Post();
         post.setCategory(category);
         post.setUser(user);
         post.setTitle(postDTO.getTitle());
-        post.setContent(content.get());
+        post.setContent(content);
         post.setCreatedAt(LocalDate.now());
         if(postDTO.getDescription() !=null) {
             post.setDescription(postDTO.getDescription());
@@ -61,11 +58,11 @@ public class PostService {
         //аз съм го направил за един формат
         // всички тези контенти да се пратят на addCo...
         List<FormatType> formatList = new ArrayList<>();
-        FormatType formatType = new FormatType(content, f.getAbsolutePath(), sizeRepository.findById(1).get());
+        FormatType formatType = new FormatType(content, f.getAbsolutePath(),sizeService.findById(1).get());
         formatList.add(formatType);
         // тук ще трябва да са въведени всички видове снимки или видеа
         content.setFormatTypes(formatList);
-        contentRepository.save(content);
+        contentService.save(content);
         return new AddingContentToPostResponsePostDTO(content);
     }
 
@@ -82,7 +79,7 @@ public class PostService {
         else {
             user.getDislikedPosts().remove(post);
         }
-        userRepository.save(user);
+        userService.save(user);
         return new DisLikeResponsePostDTO(post, user,false);
     }
 
@@ -99,8 +96,15 @@ public class PostService {
         else {
             user.getLikedPosts().remove(post);
         }
-        userRepository.save(user);
+        userService.save(user);
         return new DisLikeResponsePostDTO(post, user,true);
     }
 
+    public GetByIdResponsePostDTO getById(int id) {
+        Optional<Post> p = postRepository.findById(id);
+        if(!p.isPresent()){
+            throw new BadRequestException("no such a post");
+        }
+        return new GetByIdResponsePostDTO(p.get());
+    }
 }

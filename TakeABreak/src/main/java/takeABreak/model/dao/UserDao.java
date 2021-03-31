@@ -44,22 +44,27 @@ public class UserDao {
             query.append(" AND age = "+searchDTO.getAge());
         }
         String find = query.toString();
-        try(Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/take_a_break", "root", "root");
+        System.out.println(find);
+        try(Connection connection = DriverManager.getConnection("jdbc:mysql://84.238.145.199:7777/takeabreak", "cadet", "survivor2021");
             PreparedStatement statement = connection.prepareStatement(find)) {
+            System.out.println("да видя на кой ред гърми 1");
             ResultSet result = statement.executeQuery();
+            System.out.println("да видя на кой ред гърми 2");
             result.next();
+            System.out.println("да видя на кой ред гърми 3");
             while (result.next()){
                 users.add(repository.findById(result.getInt("id")).get());
             }
         } catch (SQLException e) {
-            throw new NotFoundException("no connection");
+            throw new NotFoundException("no connection"+ e.getMessage());
         }
         return users;
     }
 
     private StringBuilder add(StringBuilder query, String colName, String value) {
+        System.out.println(colName + " : " + value);
         if(query.compareTo(new StringBuilder("SELECT id FROM users WHERE ")) != 0){
-            query.append(" AND");
+            query.append(" AND ");
         }
         query.append(colName + " = " + value);
         return query;
