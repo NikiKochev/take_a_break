@@ -43,7 +43,7 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-            name = "users_like_posts",
+            name = "users_like_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn (name = "coments_id")}
     )
@@ -51,7 +51,7 @@ public class User {
     private List<Comment> likedComments;
     @ManyToMany
     @JoinTable(
-            name = "users_dislike_posts",
+            name = "users_dislike_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn (name = "coments_id")}
     )

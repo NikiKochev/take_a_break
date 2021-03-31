@@ -21,12 +21,18 @@ public class Post {
     private int id;
     private String title;
     private String description;
-    private LocalDate createdAt;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "content_id", referencedColumnName = "id")
+    @JsonManagedReference
+    private Content content;
 
     @ManyToOne
     @JoinColumn(name = "categories_id")
     @JsonBackReference
     private Category category;
+    private LocalDate createdAt;
+    private boolean isAdultContent;
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
@@ -37,10 +43,6 @@ public class Post {
     @JsonManagedReference
     private List<Comment> commentList;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "content_id", referencedColumnName = "id")
-    @JsonManagedReference
-    private Content content;
 
     @ManyToMany(mappedBy = "likedPosts")
     @JsonBackReference
