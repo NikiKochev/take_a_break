@@ -10,7 +10,7 @@ import takeABreak.model.pojo.Category;
 @Setter
 @Getter
 public class SingleCategoryResponseDTO {
-    private long id;
+    private int id;
     private String name;
 
     public SingleCategoryResponseDTO(Category category) {

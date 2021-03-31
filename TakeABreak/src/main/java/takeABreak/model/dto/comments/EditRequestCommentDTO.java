@@ -1,5 +1,6 @@
 package takeABreak.model.dto.comments;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import takeABreak.model.pojo.Comment;
 @NoArgsConstructor
 @Setter
 @Getter
+@AllArgsConstructor
 public class EditRequestCommentDTO {
 
     private int userId;
@@ -17,6 +19,8 @@ public class EditRequestCommentDTO {
     private String content;
 
     public EditRequestCommentDTO(Comment c) {
+        this.userId = c.getUser().getId();
+        this.content = c.getContent();
     }
 
     /*{

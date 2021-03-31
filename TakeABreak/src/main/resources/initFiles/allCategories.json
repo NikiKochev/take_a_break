@@ -1,0 +1,34 @@
+{
+categories : 
+  [
+    {name : "Funny"},
+    {name : "NSFW"},
+    {name : "Girls"},
+    {name : "WTF"},
+    {name : "Cryptocurrency"},
+    {name : "Anume"},
+    {name : "Random"},
+    {name : "Animals"},
+    {name : "Awesome"},
+    {name : "Car"},
+    {name : "Comic"},
+    {name : "Cosplay"},
+    {name : "Gaming"},
+    {name : "GIF"},
+    {name : "Celebrity"},
+    {name : "Meme"},
+    {name : "Politics"},
+    {name : "Relationship"},
+    {name : "Savage"},
+    {name : "Video"},
+    {name : "Cyberpunk"},
+    {name : "Drawings"},
+    {name : "Food"},
+    {name : "Football"},
+    {name : "Games"},
+    {name : "History"},
+    {name : "Horror"},
+    {name : "Marvel"},
+    {name : "Music"}
+  ]
+}
