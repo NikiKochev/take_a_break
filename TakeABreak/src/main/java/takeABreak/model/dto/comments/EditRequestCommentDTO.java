@@ -19,6 +19,7 @@ public class EditRequestCommentDTO {
     private String content;
 
     public EditRequestCommentDTO(Comment c) {
+
         this.userId = c.getUser().getId();
         this.content = c.getContent();
     }
