@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -29,7 +30,7 @@ public class UserService {
     private EmailService emailService;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
-        if (!userDTO.getPassword().equals(userDTO.getAaa())) {
+        if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
             throw new BadRequestException("Passwords are not equals");
         }
         if (!userDTO.getPassword().equals(userDTO.getPassword().toLowerCase())
@@ -69,19 +70,11 @@ public class UserService {
     }
 
     public LoginUserResponseDTO getById(int id) {
-        Optional<User> u = repository.findById(id);
-        if (!u.isPresent()) {
-            throw new NotFoundException("Not fount");
-        }
-        LoginUserResponseDTO user = new LoginUserResponseDTO(u.get());
-        return user;
+        return new LoginUserResponseDTO(findById(id));
     }
 
-    public byte[] getAvatar(Optional<User> user) throws IOException {
-        if (!user.isPresent()) {
-            throw new NotFoundException("Not such avatar");
-        }
-        File file = new File(user.get().getAvatar());
+    public byte[] getAvatar(User user) throws IOException {
+        File file = new File(user.getAvatar());
         return Files.readAllBytes(file.toPath());
     }
 
@@ -120,15 +113,23 @@ public class UserService {
             PasswordEncoder encoder = new BCryptPasswordEncoder();
             loggedUser.setPassword(encoder.encode(userDTO.getPassword()));
         }
-        repository.save(loggedUser);// дали да се пусне в друга нишка да се запише ако се сменя емейла,
-        // която да чака да се потвърди и тогава да се запише в базата данни
+        repository.save(loggedUser);
         return new LoginUserResponseDTO(loggedUser);
     }
+
     public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
         return new SearchForUsersResponseDTO(userDAO.findBy(searchDTO));
     }
 
     public void save(User user) {
         repository.save(user);
+    }
+
+    public User findById(int userId) {
+        Optional<User> user = repository.findById(userId);
+        if(user.isPresent()){
+            return user.get();
+        }
+        throw  new BadRequestException("No such person");
     }
 }

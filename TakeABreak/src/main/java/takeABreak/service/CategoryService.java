@@ -1,8 +1,8 @@
 package takeABreak.service;
 
-import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.categorory.AllCategoryResponseDTO;
 import takeABreak.model.pojo.Category;
 import takeABreak.model.repository.CategoryRepository;
@@ -21,7 +21,12 @@ public class CategoryService {
         return new AllCategoryResponseDTO(categories);
     }
 
-    public Optional<Category> findById(int categoryId) {
-        return categoryRepository.findById(categoryId);
+    public Category findById(int categoryId) {
+        Optional<Category> cat =categoryRepository.findById(categoryId);
+        if(!cat.isPresent()){
+            throw new NotFoundException("Not such a category");
+        }
+        return cat.get();
     }
+
 }

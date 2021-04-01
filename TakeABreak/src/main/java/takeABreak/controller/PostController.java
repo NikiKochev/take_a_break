@@ -35,14 +35,8 @@ public class PostController extends AbstractController{
     @Autowired
     private PostService postService;
     @Autowired
-    private CategoryRepository categoryRepository;
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
     private FormatTypeRepository typeRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Value("C:\\Users\\Public\\Pictures")
+    @Value("${file.path}")
     private String filePath;
 
     @PutMapping("/posts")
@@ -61,7 +55,7 @@ public class PostController extends AbstractController{
         FileType fileType = t.get();
         File f = new File(filePath + File.separator + typeId+"_"+System.nanoTime() +".png");
         OutputStream os = new FileOutputStream(f);
-        os.write(file.getBytes());// това е оригиналната позиция
+        os.write(file.getBytes());
         os.close();
         AddingContentToPostResponsePostDTO add = postService.addContent(f, fileType);
         return add;
@@ -69,19 +63,8 @@ public class PostController extends AbstractController{
 
     @DeleteMapping("/posts")
     public DeleteResponsePostDTO deletePost(@RequestBody DeleteRequestPostDTO postDTO, HttpSession session){
-        System.out.println(postDTO.getPostId());
-        User u = sessionManager.getLoggedUser(session);
-        Optional<Post> p = postRepository.findById(postDTO.getPostId());
-        if(!p.isPresent()){
-            throw new NotFoundException("Post not found");
-        }
-        if(u.getPosts().contains(p)){
-            throw new NotAuthorizedException("You cannot delete post of others");
-        }
-        u.getPosts().remove(p);
-        postRepository.delete(p.get());
-        userRepository.save(u);
-        return new DeleteResponsePostDTO("Post is deleted");
+        User user = sessionManager.getLoggedUser(session);
+        return postService.deletePost(postDTO, user);
     }
 
     @PostMapping("/posts/dislike")
@@ -108,35 +91,23 @@ public class PostController extends AbstractController{
     }
 
     @GetMapping("posts/{id}/users")
-    public GetAllByResponsePostDTO getAllByUser(@PathVariable int id){
-        Optional<User> u = userRepository.findById(id);
-        if(!u.isPresent()){
-            throw new BadRequestException("No such a person");
-        }
-        List<Post> posts = postRepository.findAllByUser(u.get());
-        return new GetAllByResponsePostDTO(posts); // todo page perpage
+    public GetAllByResponsePostDTO getByUser(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
+        return postService.getByUser(id, page, perpage);
     }
 
-    @GetMapping("posts/{id}/categories")
-    public GetAllByResponsePostDTO getAllByCategory(@PathVariable int id){
-        Optional<Category> c = categoryRepository.findById(id);
-        if(!c.isPresent()){
-            throw new BadRequestException("No such a category");
-        }
-        List<Post> posts = postRepository.findAllByCategory(c.get());
-        return new GetAllByResponsePostDTO(posts);// todo page perpage
+    @GetMapping("posts/categories/{id}/")
+    public GetAllByResponsePostDTO getByCategory(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
+        return postService.getByCategory(id, page, perpage);
     }
 
-    @GetMapping("/posts")
-    public GetAllByResponsePostDTO getAll(){
-        List<Post> posts = postRepository.findAll();
-        return new GetAllByResponsePostDTO(posts);// todo page perpage
+    @GetMapping("/posts/")
+    public GetAllByResponsePostDTO getLast(@RequestParam int page, @RequestParam int perpage){
+        return postService.getByLast(page, perpage);
     }
 
-    @GetMapping("/posts/search")
-    public SearchResponsePostDTO findPosts(){
-        //
-        return null;
+    @PostMapping("/posts/search")
+    public SearchResponsePostDTO findPosts(@RequestBody FindByRequestPostDTO postDTO){
+        return postService.findBy(postDTO);
     }
 
 }

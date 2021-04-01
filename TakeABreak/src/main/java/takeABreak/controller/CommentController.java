@@ -46,37 +46,30 @@ public class CommentController extends AbstractController{
         }
         return commentService.deleteComment(commentDTO);
     }
-    @GetMapping("/comments/user/{id}")
-    public FindResponseCommentDTO getByUserId(@PathVariable int id ){
-        return commentService.findComments(id);
+
+    @GetMapping("/comments/user/{userId}")
+    public FindResponseCommentDTO getByUser(@PathVariable int userId, @RequestParam int page, @RequestParam int perpage ){//todo
+        return commentService.findComments(userId, page, perpage);
     }
 
-    @GetMapping("/comments/post/{id}")
-    public FindResponseCommentDTO getByPostId(@PathVariable int id ){
-        return commentService.findCommentsForPost(id);
+    @GetMapping("/comments/post/{postId}")
+    public FindResponseCommentDTO getByPostId(@PathVariable int postId, @RequestParam int page, @RequestParam int perpage ){
+        return commentService.findCommentsForPost(postId, page, perpage);
     }
 
-    @PostMapping("/comments/like/{id}")
-    public GetByIdResponseCommentDTO like(@PathVariable int id, HttpSession session){
-        Optional<Comment> comment = repository.findById(id);
-        if(! comment.isPresent()){
-            throw new NotFoundException("Not such comment");
-        }
-        return commentService.likeComment(comment.get(), sessionManager.getLoggedUser(session));
+    @PostMapping("/comments/like/{commentId}")
+    public GetByIdResponseCommentDTO like(@PathVariable int commentId, HttpSession session){
+        return commentService.likeComment(commentId, sessionManager.getLoggedUser(session));
     }
 
-    @GetMapping("/comments/{id}")
-    public GetByIdResponseCommentDTO getById (@PathVariable int id){
-        return commentService.getById(id);
+    @GetMapping("/comments/{commentId}")
+    public GetByIdResponseCommentDTO getById (@PathVariable int commentId){
+        return commentService.getById(commentId);
     }
 
-    @PostMapping("/comments/dislike/{id}")
-    public GetByIdResponseCommentDTO dislike(@PathVariable int id, HttpSession session){
-        Optional<Comment> comment = repository.findById(id);
-        if(! comment.isPresent()){
-            throw new NotFoundException("Not such comment");
-        }
-        return commentService.dislikeComment(comment.get(), sessionManager.getLoggedUser(session));
+    @PostMapping("/comments/dislike/{commentId}")
+    public GetByIdResponseCommentDTO dislike(@PathVariable int commentId, HttpSession session){
+        return commentService.dislikeComment(commentId, sessionManager.getLoggedUser(session));
     }
 
 }

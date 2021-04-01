@@ -17,7 +17,7 @@ public class RegisterRequestUserDTO {
     private String email;
     private int age;
     private String password;
-    private String aaa;
+    private String confirmPassword;
     private boolean isAdult;
 
 }

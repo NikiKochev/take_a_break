@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.user.SearchForUsersRequestDTO;
 import takeABreak.model.pojo.User;
-import takeABreak.model.repository.UserRepository;
+import takeABreak.service.UserService;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,40 +20,43 @@ import java.util.List;
 @Getter
 public class UserDao {
     @Autowired
-    private UserRepository repository;
+    private UserService userService;
+    @Autowired
+    DBCredentials credentials;
 
     public List<User> findBy(SearchForUsersRequestDTO searchDTO){
         List<User> users = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT id FROM users WHERE ");
-        if(searchDTO.getFirstName() != null){
+        String firsName = searchDTO.getFirstName();
+        if(firsName != null && !firsName.trim().equals("")){
             query = add(query , "first_name", searchDTO.getFirstName());
         }
-        if(searchDTO.getLastName() != null){
+        String lastName = searchDTO.getLastName();
+        if(lastName!= null && !lastName.trim().equals("")){
             query = add(query, "last_name", searchDTO.getLastName());
         }
-        if(searchDTO.getEmail() != null){
+        String email = searchDTO.getEmail();
+        if(email!= null && !email.trim().equals("")){
             query = add(query, "email", searchDTO.getEmail());
         }
-        if(searchDTO.getCity() != null){
-            query = add(query, "city", searchDTO.getCity());
+        String city = searchDTO.getCity();
+        if(city!= null && !city.trim().equals("") ){
+            query = add(query, "city", city);
         }
-        if(searchDTO.getCountry() != null){
+        String country = searchDTO.getCountry();
+        if(country!= null && !country.trim().equals("")){
             query = add(query, "country", searchDTO.getCountry());
         }
         if(searchDTO.getAge() != 0){
             query.append(" AND age = "+searchDTO.getAge());
         }
+        query.append(" LIMIT "+ (searchDTO.getPage()*searchDTO.getPerpage() - searchDTO.getPerpage())+ ", "+ searchDTO.getPage());
         String find = query.toString();
-        System.out.println(find);
-        try(Connection connection = DriverManager.getConnection("jdbc:mysql://84.238.145.199:7777/takeabreak", "cadet", "survivor2021");
+        try(Connection connection = DriverManager.getConnection(credentials.getUrl(), credentials.getUsername(), credentials.getPassword());
             PreparedStatement statement = connection.prepareStatement(find)) {
-            System.out.println("да видя на кой ред гърми 1");
             ResultSet result = statement.executeQuery();
-            System.out.println("да видя на кой ред гърми 2");
-            result.next();
-            System.out.println("да видя на кой ред гърми 3");
             while (result.next()){
-                users.add(repository.findById(result.getInt("id")).get());
+                users.add(userService.findById(result.getInt(1)));
             }
         } catch (SQLException e) {
             throw new NotFoundException("no connection"+ e.getMessage());
@@ -62,11 +65,10 @@ public class UserDao {
     }
 
     private StringBuilder add(StringBuilder query, String colName, String value) {
-        System.out.println(colName + " : " + value);
         if(query.compareTo(new StringBuilder("SELECT id FROM users WHERE ")) != 0){
             query.append(" AND ");
         }
-        query.append(colName + " = " + value);
+        query.append(colName + " LIKE \"%" + value + "%\"");
         return query;
     }
 }

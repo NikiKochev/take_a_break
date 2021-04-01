@@ -19,10 +19,8 @@ public class UserController extends AbstractController{
 
     @Autowired
     private UserService userService;
-    @Value("C:\\Users\\Public\\Pictures")
+    @Value("${file.path}")
     private String filePath;
-    @Autowired
-    private UserRepository repo;
     @Autowired
     private SessionManager sessionManager;
 
@@ -56,7 +54,7 @@ public class UserController extends AbstractController{
         } catch (IOException e) {
             throw new AuthenticationException("Sorry, we could not upload this file. Try saving it in a different format and upload again");
         }
-        UploadAvatarDTO avatar = userService.addAvatar(f, repo.findById(id).get());
+        UploadAvatarDTO avatar = userService.addAvatar(f, userService.findById(id));
         return avatar;
     }
 
@@ -68,7 +66,7 @@ public class UserController extends AbstractController{
     @GetMapping(value = "/users/avatar/{id}", produces = "image/*")
     public byte[] downloadById(@PathVariable int id, HttpSession ses) throws IOException {
         sessionManager.getLoggedUser(ses);
-        return userService.getAvatar(repo.findById(id));
+        return userService.getAvatar(userService.findById(id));
     }
 
     @DeleteMapping("/user/{id}")
@@ -88,7 +86,7 @@ public class UserController extends AbstractController{
     @PostMapping("/users/search")
     public SearchForUsersResponseDTO findUsers(@RequestBody SearchForUsersRequestDTO searchDTO){
         return userService.findUsers(searchDTO);
-    }//todo
+    }
 
     @GetMapping("/verify")
     public LoginUserResponseDTO verifyEmail(){
