@@ -12,18 +12,22 @@ import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.UserService;
 import javax.servlet.http.HttpSession;
+import java.util.Optional;
+
 import java.io.*;
+
 
 @RestController
 public class UserController extends AbstractController{
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
     @Value("${file.path}")
     private String filePath;
     @Autowired
     private SessionManager sessionManager;
-
     @PutMapping("/user")
     public RegisterResponseUserDTO register(@RequestBody RegisterRequestUserDTO userDTO){
         //todo validation http 
@@ -43,19 +47,21 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/user/{id}/avatar")
-    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses)  {
-        User user = sessionManager.getLoggedUser(ses);
+    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses){
+//        User user = sessionManager.getLoggedUser(ses);
+
+        //TODO debugging mode use the line above instead the following lines after login is working
+        Optional<User> optionalUser = userRepository.findById(5);
+        User user = null;
+        if(optionalUser.isPresent()){
+            user = optionalUser.get();
+        }
         if(user.getId() != id){
-            throw new BadRequestException("You can't post avatar to other users");
+            throw new BadRequestException("You can't post an avatar to another user's post");
         }
-        File f = new File(filePath + File.separator + id+"_"+System.nanoTime() +".png");
-        try(OutputStream os = new FileOutputStream(f);) {
-            os.write(file.getBytes());
-        } catch (IOException e) {
-            throw new AuthenticationException("Sorry, we could not upload this file. Try saving it in a different format and upload again");
-        }
-        UploadAvatarDTO avatar = userService.addAvatar(f, userService.findById(id));
-        return avatar;
+        ///<-end debugging mode
+
+        return userService.addAvatar(file, user);
     }
 
     @GetMapping("/users/{id}")
@@ -80,7 +86,8 @@ public class UserController extends AbstractController{
 
     @PutMapping("/user/{id}")
     public LoginUserResponseDTO editUser(@RequestBody EditResponseUserDTO userDTO, HttpSession session){
-        return userService.editUser(sessionManager.getLoggedUser(session), userDTO);
+        User user = sessionManager.getLoggedUser(session);
+        return userService.editUser(user, userDTO);
     }
 
     @PostMapping("/users/search")

@@ -87,9 +87,7 @@ public class User {
         password = dto.getPassword();
         age = dto.getAge();
         createdAt = LocalDate.now();
-        isAdult = false;
-
+        isAdult = dto.isAdult();
     }
-
 
 }

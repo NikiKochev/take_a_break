@@ -35,6 +35,8 @@ public class PostController extends AbstractController{
     @Autowired
     private PostService postService;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private FormatTypeRepository typeRepository;
     @Value("${file.path}")
     private String filePath;
@@ -43,6 +45,24 @@ public class PostController extends AbstractController{
     public AddingResponsePostDTO addPost(@RequestBody AddingRequestPostDTO postDTO, HttpSession session){
         User u = sessionManager.getLoggedUser(session);
         return postService.addPost(postDTO, u);
+    }
+
+    @PutMapping("/posts/add/image")
+    public AddImageToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession ses){
+        //        User user = sessionManager.getLoggedUser(ses);
+
+        //TODO debugging mode. Use the line above instead the following lines after login is working
+        int id = 5;
+        Optional<User> optionalUser = userRepository.findById(id);
+        User user = null;
+        if(optionalUser.isPresent()){
+            user = optionalUser.get();
+        }
+        if(user.getId() != id){
+            throw new BadRequestException("You can't post an avatar to another user's post");
+        }
+        ///<-end debugging mode
+        return postService.addImageToPost(file);
     }
 
     @PutMapping("/posts/{id}/type")

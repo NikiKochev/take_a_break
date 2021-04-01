@@ -34,4 +34,17 @@ public class AbstractController {
         return e.getMessage();
     }
 
+    @ExceptionHandler(InitException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleInitException(InitException e){
+        //todo Json Object for a return whit msg
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(InternalServerErrorException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String InternalServerErrorException(InternalServerErrorException e){
+        //todo Json Object for a return whit msg
+        return e.getMessage();
+    }
 }
