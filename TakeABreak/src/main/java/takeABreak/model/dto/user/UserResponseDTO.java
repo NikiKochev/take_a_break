@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.pojo.Country;
 import takeABreak.model.pojo.User;
 
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ public class UserResponseDTO {
     private int age;
     private String avatar;
     private LocalDate createdAt;
-    private String country;
+    private Country country;
     private String city;
 
     public UserResponseDTO(UserResponseDTO user) {

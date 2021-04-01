@@ -28,6 +28,8 @@ public class UserService {
     private UserDao userDAO;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private CountryService countryService;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
@@ -106,8 +108,8 @@ public class UserService {
         if(userDTO.getCity() != null){
             loggedUser.setCity(userDTO.getCity());
         }
-        if(userDTO.getCountry() != null){
-            loggedUser.setCountry(userDTO.getCountry());
+        if(userDTO.getCountry() >= 0){
+            loggedUser.setCountry(countryService.findById(userDTO.getCountry()));
         }
         if(userDTO.getPassword() != null){
             PasswordEncoder encoder = new BCryptPasswordEncoder();

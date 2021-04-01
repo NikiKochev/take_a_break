@@ -18,7 +18,7 @@ public class EditResponseUserDTO {
     private String email;
     private int age;
     private String password;
-    private String country;
+    private int country;
     private String city;
 
 }

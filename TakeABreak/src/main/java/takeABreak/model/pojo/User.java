@@ -1,5 +1,6 @@
 package takeABreak.model.pojo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,10 +29,14 @@ public class User {
     private String password;
     private LocalDate createdAt;
     private LocalDate deletedAt;
-    private String country;
     private String city;
     private String avatar; // url of avatar
     private boolean isAdult;
+
+    @ManyToOne
+    @JoinColumn(name = "country")
+    @JsonBackReference
+    private Country country;
 
     @OneToMany (mappedBy = "user")
     @JsonManagedReference

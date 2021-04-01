@@ -48,7 +48,7 @@ public class CommentController extends AbstractController{
     }
 
     @GetMapping("/comments/user/{userId}")
-    public FindResponseCommentDTO getByUser(@PathVariable int userId, @RequestParam int page, @RequestParam int perpage ){//todo
+    public FindResponseCommentDTO getByUser(@PathVariable int userId, @RequestParam int page, @RequestParam int perpage ){
         return commentService.findComments(userId, page, perpage);
     }
 
