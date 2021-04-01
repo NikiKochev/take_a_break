@@ -14,7 +14,7 @@ public class SingleCategoryResponseDTO {
     private String name;
 
     public SingleCategoryResponseDTO(Category category) {
-        id= category.getId();;
+        id= category.getId();
         name= category.getName();
     }
 }

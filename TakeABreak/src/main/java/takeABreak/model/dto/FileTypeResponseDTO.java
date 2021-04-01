@@ -18,6 +18,6 @@ public class FileTypeResponseDTO {
 
     public FileTypeResponseDTO(FileType fileType){
         id= fileType.getId();
-        name = fileType.getName();
+        name = fileType.getType();
     }
 }

@@ -13,7 +13,6 @@ import java.util.Objects;
 @Getter
 @Entity
 @Table(name = "format_type")
-
 public class FormatType  implements Serializable {
 
     @Id
@@ -24,7 +23,7 @@ public class FormatType  implements Serializable {
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "size_id")
+    @JoinColumn(name = "kind_id")
     @JsonBackReference
     private Size size;
 

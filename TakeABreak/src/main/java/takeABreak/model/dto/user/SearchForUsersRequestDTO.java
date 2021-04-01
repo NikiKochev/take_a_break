@@ -19,6 +19,8 @@ public class SearchForUsersRequestDTO {
     private int age;
     private String city;
     private String country;
+    private int page;
+    private int perpage;
     /*{
    "firstName":"Georgi",
     "lastName":"Ivanov",

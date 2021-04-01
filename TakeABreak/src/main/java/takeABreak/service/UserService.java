@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.InternalServerErrorException;
-import takeABreak.exceptions.NotFoundException;
+import takeABreak.model.dao.GCloudProperties;
 import takeABreak.model.dao.UserDao;
 import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.TempDir;
@@ -27,22 +27,23 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 @Service
 public class UserService {
 
     public static final int AVATAR_TARGET_SIZE = 200;
+    public static final String AVATAR_IMAGE_TYPE = ".png";
     @Autowired
     private UserRepository repository;
     @Autowired
     private UserDao userDAO;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private GCloudProperties gCloudProperties;
     private String avatarFilesPath =
             "TakeABreak" + File.separator +
             "src" + File.separator +
@@ -102,7 +103,7 @@ public class UserService {
         String imgName = "userId_" + user.getId() +"_" + System.currentTimeMillis();
         String locationOriginalImg = dir + File.separator + imgName + "." + extension;
         File file = new File(locationOriginalImg);
-        String resizedPngLocation = dir + File.separator + imgName + "_resized.png";
+        String resizedPngLocation = dir + File.separator + imgName + "_resized" + AVATAR_IMAGE_TYPE;
         File resizedPng = new File(resizedPngLocation);
         try{
             //write original file in temp dir
@@ -128,13 +129,13 @@ public class UserService {
             biFinalImage.flush();
             //save in Google Cloud
             Credentials credentials = GoogleCredentials
-                    .fromStream(new FileInputStream("My First Project-62db42eda7a5.json"));
+                    .fromStream(new FileInputStream(gCloudProperties.getCredentials()));
             Storage storage = StorageOptions.newBuilder().setCredentials(credentials)
-                    .setProjectId("impactful-name-309405").build().getService();
-            Bucket bucket = storage.get("takeabreak");
+                    .setProjectId(gCloudProperties.getProjectId()).build().getService();
+            Bucket bucket = storage.get(gCloudProperties.getBucket());
 
             InputStream inStreamFinalImage = new FileInputStream(resizedPngLocation);
-            Blob blob = bucket.create(imgName + ".png", inStreamFinalImage);
+            Blob blob = bucket.create(imgName + AVATAR_IMAGE_TYPE, inStreamFinalImage);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +144,7 @@ public class UserService {
                             "Try with different image. If the message appears again, try again later.");
         }
 
-        user.setAvatar("https://storage.googleapis.com/takeabreak/" + imgName + ".png");
+        user.setAvatar(gCloudProperties.getCloudBucketUrl() + imgName + AVATAR_IMAGE_TYPE);
         repository.save(user);
         UploadAvatarDTO avatar = new UploadAvatarDTO(repository.findById(user.getId()).get().getAvatar(), user.getId());
         return avatar;
@@ -151,7 +152,7 @@ public class UserService {
 
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        PasswordEncoder encoder = new BCryptPasswordEncoder();;
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
         }
@@ -159,19 +160,13 @@ public class UserService {
     }
 
     public LoginUserResponseDTO getById(int id) {
-        Optional<User> u = repository.findById(id);
-        if (!u.isPresent()) {
-            throw new NotFoundException("Not found");
-        }
-        LoginUserResponseDTO user = new LoginUserResponseDTO(u.get());
-        return user;
+
+        return new LoginUserResponseDTO(findById(id));
+
     }
 
-    public byte[] getAvatar(Optional<User> user) throws IOException {
-        if (!user.isPresent()) {
-            throw new NotFoundException("Not such avatar");
-        }
-        File file = new File(user.get().getAvatar());
+    public byte[] getAvatar(User user) throws IOException {
+        File file = new File(user.getAvatar());
         return Files.readAllBytes(file.toPath());
     }
 
@@ -188,6 +183,10 @@ public class UserService {
     }
 
     public LoginUserResponseDTO editUser(User loggedUser, EditResponseUserDTO userDTO) {
+        System.out.println(userDTO.getAge());
+        System.out.println(userDTO.getCountry());
+        System.out.println("blabla");
+
         if(userDTO.getAge() != 0){
             loggedUser.setAge(userDTO.getAge());
         }
@@ -210,11 +209,23 @@ public class UserService {
             PasswordEncoder encoder = new BCryptPasswordEncoder();
             loggedUser.setPassword(encoder.encode(userDTO.getPassword()));
         }
-        repository.save(loggedUser);// дали да се пусне в друга нишка да се запише ако се сменя емейла,
-        // която да чака да се потвърди и тогава да се запише в базата данни
+        repository.save(loggedUser);
         return new LoginUserResponseDTO(loggedUser);
     }
+
     public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
         return new SearchForUsersResponseDTO(userDAO.findBy(searchDTO));
+    }
+
+    public void save(User user) {
+        repository.save(user);
+    }
+
+    public User findById(int userId) {
+        Optional<User> user = repository.findById(userId);
+        if(user.isPresent()){
+            return user.get();
+        }
+        throw  new BadRequestException("No such person");
     }
 }

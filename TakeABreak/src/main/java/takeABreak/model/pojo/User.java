@@ -16,6 +16,7 @@ import java.util.List;
 @Table(name = "users")
 public class User {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -42,7 +43,7 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-            name = "users_like_coments",
+            name = "users_like_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn (name = "coments_id")}
     )
@@ -50,7 +51,7 @@ public class User {
     private List<Comment> likedComments;
     @ManyToMany
     @JoinTable(
-            name = "users_dislike_coments",
+            name = "users_dislike_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn (name = "coments_id")}
     )
@@ -83,7 +84,5 @@ public class User {
         createdAt = LocalDate.now();
         isAdult = dto.isAdult();
     }
-
-
 
 }
