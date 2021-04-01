@@ -1,6 +1,8 @@
 package takeABreak.model.dto.user;
 
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,5 +20,6 @@ public class RegisterRequestUserDTO {
     private int age;
     private String password;
     private String confirmPassword;
+    private boolean isAdult;
 
 }

@@ -12,6 +12,7 @@ import takeABreak.model.pojo.Country;
 import takeABreak.model.repository.CategoryRepository;
 import takeABreak.model.repository.CountryRepository;
 
+import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,9 @@ public class InitService {
 
         List<Country> listCountries = new ArrayList<>();
 
-        try(FileReader fileReader = new FileReader("TakeABreak\\src\\main\\resources\\initFiles\\allCountries.json")){
+        try(FileReader fileReader = new FileReader(
+                "TakeABreak" + File.separator + "src" + File.separator + "main" + File.separator + "resources" +
+                        File.separator + "initFiles" + File.separator + "allCountries.json")){
 
             CountriesDTO countries = gson.fromJson(fileReader, CountriesDTO.class);
 
@@ -67,7 +70,9 @@ public class InitService {
         }
 
         List<Category> listCategories = new ArrayList<>();
-        try(FileReader fileReader = new FileReader("TakeABreak\\src\\main\\resources\\initFiles\\allCategories.json")){
+        try(FileReader fileReader = new FileReader(
+                "TakeABreak" + File.separator + "src" + File.separator + "main" + File.separator + "resources" +
+                        File.separator + "initFiles" + File.separator + "allCategories.json")){
 
             CategoriesDTO categories = gson.fromJson(fileReader, CategoriesDTO.class);
 

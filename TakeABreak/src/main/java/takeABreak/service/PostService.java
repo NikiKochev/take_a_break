@@ -1,18 +1,28 @@
 package takeABreak.service;
 
+import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.BadRequestException;
+import takeABreak.exceptions.InternalServerErrorException;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.post.*;
 import takeABreak.model.pojo.*;
 import takeABreak.model.repository.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+
+import static takeABreak.service.UserService.AVATAR_TARGET_SIZE;
 
 @Service
 public class PostService {
@@ -26,6 +36,8 @@ public class PostService {
     private ContentRepository contentRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AddImageToPostResponseDTO addImageToPostResponseDTO;
 
 
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user) {
@@ -67,6 +79,76 @@ public class PostService {
         content.setFormatTypes(formatList);
         contentRepository.save(content);
         return new AddingContentToPostResponsePostDTO(content);
+    }
+
+    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile){
+
+        String extension = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
+        extension = extension.toLowerCase();
+        //check if the file format is supported
+        HashSet<String> supportedImageFormats = new HashSet();
+        supportedImageFormats.add("jpg");
+        supportedImageFormats.add("jpeg");
+        supportedImageFormats.add("gif");
+        supportedImageFormats.add("mbp");
+        supportedImageFormats.add("wbmp");
+        supportedImageFormats.add("png");
+        if(!supportedImageFormats.contains(extension)){
+            throw new BadRequestException("Unsupported file type. Please upload an image file in JPEG, PNG, BMP, WBMP or GIF format");
+        }
+
+        String dir = TempDir.getLocation();
+        String imgName = "" + System.nanoTime();
+        String locationOriginalImg = dir + File.separator + imgName + "." + extension;
+        File file = new File(locationOriginalImg);
+
+//        try{
+//            //write original file in temp dir
+//            OutputStream originalFileOutputStream = new FileOutputStream(file);
+//            originalFileOutputStream.write(multipartFile.getBytes());
+//            addImageToPostResponseDTO.setPathSize1(locationOriginalImg);
+//            //resize, crop and convert original file to PNG and save it in the temp dir
+//            File originalImgFile = new File(locationOriginalImg);
+//            BufferedImage biOriginalImg = ImageIO.read(originalImgFile);
+//            int width = biOriginalImg.getWidth();
+//            int height = biOriginalImg.getHeight();
+//
+//            if(width/height < 0.25 || width/height > 4){
+//                throw new BadRequestException("Inappropriate image ratio. It should not exceed 1:4 or 4:1");
+//            }
+//
+//            if(width < 460){
+//
+//            }
+//
+//            String resized = dir + File.separator + imgName + "_resized.png";
+//            File resizedPng = new File(resizedPngLocation);
+//
+//            int widthPix = biOriginalImg.getWidth();
+//            int heightPix = biOriginalImg.getHeight();
+//            BufferedImage biCroppedImage = null;
+//            if(heightPix < widthPix) {
+//                biCroppedImage = Scalr.crop(biOriginalImg, (widthPix - heightPix) / 2, 0, heightPix, heightPix);
+//            }else{
+//                biCroppedImage = Scalr.crop(biOriginalImg, 0, (heightPix - widthPix) / 2, widthPix, widthPix);
+//            }
+//            BufferedImage biFinalImage = Scalr.resize(biCroppedImage, AVATAR_TARGET_SIZE);
+//            //save final image in local server machine and delete the rest
+//            ImageIO.write(biFinalImage, "png", resizedPng);
+//            biFinalImage.flush();
+//            originalFileOutputStream.close();
+//            originalImgFile.delete();
+//            //save in AWS
+//            String bucketName = "takeabreak";
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new InternalServerErrorException(
+//                    "The server experienced some difficulties or provided image is not in proper file format." +
+//                            "Try with different image. If the message appears again, try again later.");
+//        }
+
+        return null;
     }
 
     public DisLikeResponsePostDTO dislikeComment(DisLikeRequestPostDTO postDTO, User user) {

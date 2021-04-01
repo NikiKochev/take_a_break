@@ -40,4 +40,11 @@ public class AbstractController {
         //todo Json Object for a return whit msg
         return e.getMessage();
     }
+
+    @ExceptionHandler(InternalServerErrorException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String InternalServerErrorException(InternalServerErrorException e){
+        //todo Json Object for a return whit msg
+        return e.getMessage();
+    }
 }

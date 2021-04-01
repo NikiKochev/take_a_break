@@ -2,7 +2,6 @@ package takeABreak.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.BadRequestException;
@@ -11,20 +10,16 @@ import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.UserService;
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.util.Optional;
 
 @RestController
 public class UserController extends AbstractController{
 
     @Autowired
     private UserService userService;
-    @Value("C:\\Users\\Public\\Pictures")
-    private String filePath;
     @Autowired
-    private UserRepository repo;
+    private UserRepository userRepository;
     @Autowired
     private SessionManager sessionManager;
 
@@ -47,17 +42,21 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/user/{id}/avatar")
-    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses) throws IOException {
-        User user = sessionManager.getLoggedUser(ses);
-        if(user.getId() != id){
-            throw new BadRequestException("You can't post avatar to other users");
+    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses){
+//        User user = sessionManager.getLoggedUser(ses);
+
+        //TODO debugging mode use the line above instead the following lines after login is working
+        Optional<User> optionalUser = userRepository.findById(id);
+        User user = null;
+        if(optionalUser.isPresent()){
+            user = optionalUser.get();
         }
-        File f = new File(filePath + File.separator + id+"_"+System.nanoTime() +".png");
-        OutputStream os = new FileOutputStream(f);
-        os.write(file.getBytes());
-        os.close();
-        UploadAvatarDTO avatar = userService.addAvatar(f, repo.findById(id).get());
-        return avatar;
+        if(user.getId() != id){
+            throw new BadRequestException("You can't post an avatar to another user's post");
+        }
+        ///<-end debugging mode
+
+        return userService.addAvatar(file, user);
     }
 
     @GetMapping("/users/{id}")
@@ -68,7 +67,7 @@ public class UserController extends AbstractController{
     @GetMapping(value = "/users/avatar/{id}", produces = "image/*")
     public byte[] downloadById(@PathVariable int id, HttpSession ses) throws IOException {
         sessionManager.getLoggedUser(ses);
-        return userService.getAvatar(repo.findById(id));
+        return userService.getAvatar(userRepository.findById(id));
     }
 
     @DeleteMapping("/user/{id}")
