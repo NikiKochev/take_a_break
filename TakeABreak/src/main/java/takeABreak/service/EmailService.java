@@ -3,8 +3,6 @@ package takeABreak.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import takeABreak.model.pojo.User;
 
@@ -12,19 +10,23 @@ import takeABreak.model.pojo.User;
 public class EmailService {
     private final static String FROM = "nikolaykochev@gmail.com";
 
-    private JavaMailSender emailSender = new JavaMailSenderImpl();
+    private JavaMailSender emailSender;
+
+    @Autowired
+    public EmailService (JavaMailSender javaMailSender){
+        this.emailSender = javaMailSender;
+    }
 
     public void sendSimpleMessage(User user) {
         String to = user.getEmail();
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(FROM);
         message.setTo(to);
+        message.setFrom(FROM);
         message.setSubject("Please verify your registration");
-        String verifyURL = "localhost:8220/verify?code=" + user.getVerification();
-        String content = "Dear"+user.getEmail()+"<br>"
-                + "Please click the link below to verify your registration:<br>"
+        String verifyURL = "http://localhost:8220/users/verify?code=" + user.getVerification();
+        String content ="Please click the link below to verify your registration: \n "
                 +  verifyURL
-                + "Thank you,<br>"
+                + "\nThank you,\n"
                 + "Take a Break";
 
         message.setText(content);

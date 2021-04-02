@@ -185,10 +185,6 @@ public class UserService {
     }
 
     public LoginUserResponseDTO editUser(User loggedUser, EditResponseUserDTO userDTO) {
-        System.out.println(userDTO.getAge());
-        System.out.println(userDTO.getCountry());
-        System.out.println("blabla");
-
         if(userDTO.getAge() != 0){
             loggedUser.setAge(userDTO.getAge());
         }
@@ -229,5 +225,12 @@ public class UserService {
             return user.get();
         }
         throw  new BadRequestException("No such person");
+    }
+
+    public LoginUserResponseDTO findByVerificationCode(String code) {
+        User user = repository.findByVerification(code);
+        user.setVerify(true);
+        repository.save(user);
+        return new LoginUserResponseDTO(user);
     }
 }

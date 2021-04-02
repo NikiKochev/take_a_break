@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class InitResponseDTO {
-    // todo този клас трябва да го премахнем преди презентацията
     private String entityType;
     private int enteredEntities;
 

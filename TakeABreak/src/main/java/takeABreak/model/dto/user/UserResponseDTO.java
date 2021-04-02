@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.dto.CountryResponseDTO;
 import takeABreak.model.pojo.Country;
 import takeABreak.model.pojo.User;
 
@@ -21,20 +22,8 @@ public class UserResponseDTO {
     private int age;
     private String avatar;
     private LocalDate createdAt;
-    private Country country;
+    private CountryResponseDTO country;
     private String city;
-
-    public UserResponseDTO(UserResponseDTO user) {
-        id = user.getId();
-        firstName = user.getFirstName();
-        lastName = user.getLastName();
-        email = user.getEmail();
-        age = user.getAge();
-        avatar = user.getAvatar();
-        createdAt = user.getCreatedAt();
-        country = user.getCountry();
-        city = user.getCity();
-    }
 
     public UserResponseDTO(User user) {
         id = user.getId();
@@ -44,7 +33,9 @@ public class UserResponseDTO {
         age = user.getAge();
         avatar = user.getAvatar();
         createdAt = user.getCreatedAt();
-        country = user.getCountry();
+        if(user.getCountry() != null) {
+            country = new CountryResponseDTO(user.getCountry());
+        }
         city = user.getCity();
     }
 }

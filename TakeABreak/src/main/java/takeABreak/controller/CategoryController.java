@@ -7,7 +7,7 @@ import takeABreak.model.dto.categorory.AllCategoryResponseDTO;
 import takeABreak.service.CategoryService;
 
 @RestController
-public class CategoryController {
+public class CategoryController extends AbstractController{
 
     @Autowired
     private CategoryService categoryService;
