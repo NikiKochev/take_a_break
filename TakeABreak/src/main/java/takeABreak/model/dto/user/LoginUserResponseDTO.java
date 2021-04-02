@@ -37,7 +37,9 @@ public class LoginUserResponseDTO {
         email = user.getEmail();
         age= user.getAge();
         createdAt = user.getCreatedAt();
-        country = new CountryResponseDTO(user.getCountry());
+        if(user.getCountry() != null) {
+            country = new CountryResponseDTO(user.getCountry());
+        }
         avatar = user.getAvatar();
         city = user.getCity();
         posts = new ArrayList<>();

@@ -50,7 +50,7 @@ public class UserDao {
         if(searchDTO.getAge() != 0){
             query.append(" AND age = "+searchDTO.getAge());
         }
-        query.append(" LIMIT "+ (searchDTO.getPage()*searchDTO.getPerpage() - searchDTO.getPerpage())+ ", "+ searchDTO.getPage());
+        query.append(" LIMIT "+ (searchDTO.getPage()*searchDTO.getPerpage() - searchDTO.getPerpage())+ ", "+ searchDTO.getPerpage());
         String find = query.toString();
         try(Connection connection = DriverManager.getConnection(credentials.getUrl(), credentials.getUsername(), credentials.getPassword());
             PreparedStatement statement = connection.prepareStatement(find)) {

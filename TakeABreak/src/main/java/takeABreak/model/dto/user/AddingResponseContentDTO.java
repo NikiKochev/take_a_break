@@ -21,7 +21,7 @@ public class AddingResponseContentDTO {
     public AddingResponseContentDTO(int id, FileType fileType, Size size, String url) {
         contentId = id;
         fileTypeId = fileType.getId();
-        sizeId = size.getId();
+        sizeId = size.getFileUsedForId();
         this.url = url;
 
     }

@@ -23,7 +23,7 @@ public class FormatType  implements Serializable {
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "kind_id")
+    @JoinColumn(name = "size")
     @JsonBackReference
     private Size size;
 

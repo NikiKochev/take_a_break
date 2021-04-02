@@ -32,6 +32,7 @@ public class User {
     private String city;
     private String avatar; // url of avatar
     private boolean isAdult;
+    private boolean isVerify;
 
     @ManyToOne
     @JoinColumn(name = "country")
@@ -88,6 +89,7 @@ public class User {
         age = dto.getAge();
         createdAt = LocalDate.now();
         isAdult = dto.isAdult();
+        isVerify = false;
     }
 
 }
