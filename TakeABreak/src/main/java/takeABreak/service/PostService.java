@@ -15,10 +15,12 @@ import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.InternalServerErrorException;
 import takeABreak.exceptions.NotAuthorizedException;
 
+import takeABreak.model.dao.GCloudProperties;
 import takeABreak.model.dao.PostDAO;
 import takeABreak.model.dto.post.*;
 import takeABreak.model.dto.user.UploadAvatarDTO;
 import takeABreak.model.pojo.*;
+import takeABreak.model.pojo.resizeAnimatedGif.GifUtil;
 import takeABreak.model.repository.*;
 
 import javax.imageio.ImageIO;
@@ -61,6 +63,8 @@ public class PostService {
     private ContentService contentService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private GCloudProperties gCloudProperties;
 
 
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user) {
@@ -97,11 +101,11 @@ public class PostService {
         return new AddingContentToPostResponsePostDTO(content);
     }
 
-    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile, int userId){
+    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile, String sessionId){
+
         //get file extension
         String extension = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
         extension = extension.toLowerCase();
-        System.out.println(extension);
 
         //check if the file format is supported
         HashSet<String> supportedImageFormats = new HashSet();
@@ -120,11 +124,10 @@ public class PostService {
             throw new BadRequestException("Uploaded image should not exceed 10MB");
         }
 
-
         //save original file into the temp dir
         String dir = TempDir.getLocation();
-        String imgName = userId + "_" + System.currentTimeMillis();
-        String locationOriginalImg = dir + File.separator + imgName + "." + extension;
+        String originalName = sessionId + "_" + System.currentTimeMillis();
+        String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
         try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
             originalFileOutputStream.write(multipartFile.getBytes());
@@ -133,11 +136,62 @@ public class PostService {
             throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
         }
 
+        String smallName = originalName + "_" + SMALL_IMAGE_CODE;
+        String mediumName = originalName + "_" + MEDIUM_IMAGE_CODE;
+        String largeName = originalName + "_" + LARGE_IMAGE_CODE;
+
+        //Resize depending of type Still Image or GIF
+        if(extension.equals("gif")){
+            resizeGif(locationOriginalImg);
+        }else{
+            resizeStillImage(dir, originalName, smallName, mediumName, largeName, extension);
+        }
+
+        //Save in Google Cloud
+        ArrayList<String> fileNames = new ArrayList<>();
+        fileNames.add(originalName);
+        fileNames.add(smallName);
+        fileNames.add(mediumName);
+        fileNames.add(largeName);
+
+        try {
+            for (int i = 0; i < fileNames.size(); i++) {
+
+                if(!extension.equals("gif")){
+                    extension = "jpg";
+                }
+
+                File file = new File(dir + File.separator + fileNames.get(i) + "." + extension);
+
+                Credentials credentials = GoogleCredentials
+                        .fromStream(new FileInputStream(gCloudProperties.getCredentials()));
+                Storage storage = StorageOptions.newBuilder().setCredentials(credentials)
+                        .setProjectId(gCloudProperties.getProjectId()).build().getService();
+                Bucket bucket = storage.get(gCloudProperties.getBucket());
+
+                InputStream inStreamFinalImage = new FileInputStream(file);
+                Blob blob = bucket.create(fileNames.get(i) + "." + extension, inStreamFinalImage);
+
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InternalServerErrorException(
+                    "The server experienced some difficulties, try again later.");
+        }
+
+        return addImageToPostResponseDTO;
+    }
+
+    private void resizeStillImage(String dir, String originalName, String smallName, String mediumName, String LargeName, String extension){
+
+        String locationOriginalImg = dir + File.separator + originalName + "." + extension;
+        File originalFile = new File(locationOriginalImg);
         //rename JPEG to JPG
         if(extension.equals("jpeg")){
-            File copiedFile = new File(dir + File.separator + imgName + ".jpg");
+            File copiedFile = new File(dir + File.separator + originalName + ".jpg");
             originalFile.renameTo(copiedFile);
-            originalFile = new File(dir + File.separator + imgName + ".jpg");
+            originalFile = new File(dir + File.separator + originalName + ".jpg");
             extension = "jpg";
         }
 
@@ -152,28 +206,26 @@ public class PostService {
             biOriginalImg.flush();
 
             //in case the image is NOT GIF or JPG, convert it to JPG
-            HashSet<String> typesToBeConverted = new HashSet<>(supportedImageFormats);
-            typesToBeConverted.remove("jpg");
-            typesToBeConverted.remove("jpeg");
-            typesToBeConverted.remove("gif");
+            HashSet<String> typesToBeConverted = new HashSet<>();
+            typesToBeConverted.add("mbp");
+            typesToBeConverted.add("png");
+            typesToBeConverted.add("wbmp");
 
             if(typesToBeConverted.contains(extension)){
-                //Rename original file
-                File copiedFile = new File(dir + File.separator + imgName + "_copy." + extension);
-                originalFile.renameTo(copiedFile);
-                File originalFileName = new File(dir + File.separator + imgName + "." + STILL_IMAGE_TYPE);
-                //save original file in JPG format
+                File copiedFile = new File(dir + File.separator + originalName + "_copy." + extension);
+                originalFile.renameTo(copiedFile); //Rename original file
+                File originalFileName = new File(dir + File.separator + originalName + STILL_IMAGE_TYPE);
                 BufferedImage duplicateBufferedImage = ImageIO.read(copiedFile);
-                ImageIO.write(duplicateBufferedImage, "jpeg", originalFileName);
+                ImageIO.write(duplicateBufferedImage, "jpg", originalFileName);//save original file in JPG format
                 duplicateBufferedImage.flush();
                 copiedFile.delete();
+                extension = "jpg";
             }
 
-
             //resize and save in small size
-            File file = new File(dir + File.separator + imgName + "." + extension);
+            File file = new File(dir + File.separator + originalName + "." + extension);
             BufferedImage biOriginalSize = ImageIO.read(file);
-            File smallSize = new File(dir + File.separator + imgName + "_" + SMALL_IMAGE_CODE + STILL_IMAGE_TYPE);
+            File smallSize = new File(dir + File.separator + originalName + "_" + SMALL_IMAGE_CODE + STILL_IMAGE_TYPE);
             if(biOriginalImg.getWidth() > SMALL_SIZE_WIGHT) {
                 BufferedImage biSmallSize = Scalr.resize(biOriginalSize, SMALL_SIZE_WIGHT);
                 ImageIO.write(biSmallSize, extension, smallSize);
@@ -182,7 +234,7 @@ public class PostService {
                 ImageIO.write(biOriginalSize, extension, smallSize);
             }
             //resize and save in medium size
-            File mediumSize = new File(dir + File.separator + imgName + "_" + MEDIUM_IMAGE_CODE + STILL_IMAGE_TYPE);
+            File mediumSize = new File(dir + File.separator + originalName + "_" + MEDIUM_IMAGE_CODE + STILL_IMAGE_TYPE);
             if(biOriginalImg.getWidth() > MEDIUM_SIZE_WIGHT) {
                 BufferedImage biMediumSize = Scalr.resize(biOriginalSize, MEDIUM_SIZE_WIGHT);
                 ImageIO.write(biMediumSize, extension, mediumSize);
@@ -191,7 +243,7 @@ public class PostService {
                 ImageIO.write(biOriginalSize, extension, mediumSize);
             }
             //resize and save in large size
-            File largeSize = new File(dir + File.separator + imgName + "_" + LARGE_IMAGE_CODE + STILL_IMAGE_TYPE);
+            File largeSize = new File(dir + File.separator + originalName + "_" + LARGE_IMAGE_CODE + STILL_IMAGE_TYPE);
             if(biOriginalImg.getWidth() > LARGE_SIZE_WIGHT) {
                 BufferedImage biLargeSize = Scalr.resize(biOriginalSize, LARGE_SIZE_WIGHT);
                 ImageIO.write(biLargeSize, extension, largeSize);
@@ -206,9 +258,13 @@ public class PostService {
                     "The server experienced some difficulties or provided image is not in proper file format." +
                             "Try with different image. If the message appears again, try again later.");
         }
-
-        return null;
     }
+
+    private void resizeGif(String gifPath){
+//        File destFile = new File(locationOriginalImg+".gif");
+//        GifUtil.gifInputToOutput(originalFile, destFile);
+    }
+
 
     public DisLikeResponsePostDTO dislikeComment(DisLikeRequestPostDTO postDTO, User user) {
         Post post = findById(postDTO.getPostId());

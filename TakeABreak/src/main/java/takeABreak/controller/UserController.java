@@ -48,8 +48,7 @@ public class UserController extends AbstractController{
 
     @PutMapping("/user/{id}/avatar")
     public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession session){
-//        User user = sessionManager.getLoggedUser(session);//TODO fix it and delete the next row
-        User user = userRepository.findById(id).get();
+        User user = sessionManager.getLoggedUser(session);
         if(user.getId() != id){
             throw new BadRequestException("You can't post an avatar to another user's post");
         }

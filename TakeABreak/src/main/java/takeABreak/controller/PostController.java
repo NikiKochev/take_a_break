@@ -49,12 +49,9 @@ public class PostController extends AbstractController{
 
     @PutMapping("/posts/add/image")
     public AddImageToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession session){
-//        User user = sessionManager.getLoggedUser(session);//TODO fix it and delete the next row
-//        int userId =  user.getId();
-
-        int userId  = 5;
-//       ============
-        return postService.addImageToPost(file, userId);
+        User user = sessionManager.getLoggedUser(session);
+        String sessionId =  session.getId();
+        return postService.addImageToPost(file, sessionId);
     }
 
     @PutMapping("/posts/{id}/type")
