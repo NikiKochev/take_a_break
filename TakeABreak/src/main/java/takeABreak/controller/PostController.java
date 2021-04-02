@@ -48,21 +48,13 @@ public class PostController extends AbstractController{
     }
 
     @PutMapping("/posts/add/image")
-    public AddImageToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession ses){
-        //        User user = sessionManager.getLoggedUser(ses);
+    public AddImageToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession session){
+//        User user = sessionManager.getLoggedUser(session);//TODO fix it and delete the next row
+//        int userId =  user.getId();
 
-        //TODO debugging mode. Use the line above instead the following lines after login is working
-        int id = 5;
-        Optional<User> optionalUser = userRepository.findById(id);
-        User user = null;
-        if(optionalUser.isPresent()){
-            user = optionalUser.get();
-        }
-        if(user.getId() != id){
-            throw new BadRequestException("You can't post an avatar to another user's post");
-        }
-        ///<-end debugging mode
-        return postService.addImageToPost(file);
+        int userId  = 5;
+//       ============
+        return postService.addImageToPost(file, userId);
     }
 
     @PutMapping("/posts/{id}/type")

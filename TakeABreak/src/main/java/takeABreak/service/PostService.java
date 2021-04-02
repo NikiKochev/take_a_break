@@ -1,25 +1,34 @@
 package takeABreak.service;
 
+import com.google.auth.Credentials;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.BadRequestException;
 
+import takeABreak.exceptions.InternalServerErrorException;
 import takeABreak.exceptions.NotAuthorizedException;
 
-import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dao.PostDAO;
 import takeABreak.model.dto.post.*;
+import takeABreak.model.dto.user.UploadAvatarDTO;
 import takeABreak.model.pojo.*;
 import takeABreak.model.repository.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +39,14 @@ import static takeABreak.service.UserService.AVATAR_TARGET_SIZE;
 
 @Service
 public class PostService {
+    public static final String STILL_IMAGE_TYPE = ".jpg";
+    public static final int SMALL_SIZE_WIGHT = 460;
+    public static final int MEDIUM_SIZE_WIGHT = 650;
+    public static final int LARGE_SIZE_WIGHT = 2560;
+    public static final int SMALL_IMAGE_CODE = 2;
+    public static final int MEDIUM_IMAGE_CODE = 3;
+    public static final int LARGE_IMAGE_CODE = 4;
+
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -80,10 +97,12 @@ public class PostService {
         return new AddingContentToPostResponsePostDTO(content);
     }
 
-    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile){
-
+    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile, int userId){
+        //get file extension
         String extension = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
         extension = extension.toLowerCase();
+        System.out.println(extension);
+
         //check if the file format is supported
         HashSet<String> supportedImageFormats = new HashSet();
         supportedImageFormats.add("jpg");
@@ -96,56 +115,97 @@ public class PostService {
             throw new BadRequestException("Unsupported file type. Please upload an image file in JPEG, PNG, BMP, WBMP or GIF format");
         }
 
-        String dir = TempDir.getLocation();
-        String imgName = "" + System.nanoTime();
-        String locationOriginalImg = dir + File.separator + imgName + "." + extension;
-        File file = new File(locationOriginalImg);
+        //check file size
+        if(multipartFile.getSize() > 10485760){//10 MB
+            throw new BadRequestException("Uploaded image should not exceed 10MB");
+        }
 
-//        try{
-//            //write original file in temp dir
-//            OutputStream originalFileOutputStream = new FileOutputStream(file);
-//            originalFileOutputStream.write(multipartFile.getBytes());
-//            addImageToPostResponseDTO.setPathSize1(locationOriginalImg);
-//            //resize, crop and convert original file to PNG and save it in the temp dir
-//            File originalImgFile = new File(locationOriginalImg);
-//            BufferedImage biOriginalImg = ImageIO.read(originalImgFile);
-//            int width = biOriginalImg.getWidth();
-//            int height = biOriginalImg.getHeight();
-//
-//            if(width/height < 0.25 || width/height > 4){
-//                throw new BadRequestException("Inappropriate image ratio. It should not exceed 1:4 or 4:1");
-//            }
-//
-//            if(width < 460){
-//
-//            }
-//
-//            String resized = dir + File.separator + imgName + "_resized.png";
-//            File resizedPng = new File(resizedPngLocation);
-//
-//            int widthPix = biOriginalImg.getWidth();
-//            int heightPix = biOriginalImg.getHeight();
-//            BufferedImage biCroppedImage = null;
-//            if(heightPix < widthPix) {
-//                biCroppedImage = Scalr.crop(biOriginalImg, (widthPix - heightPix) / 2, 0, heightPix, heightPix);
-//            }else{
-//                biCroppedImage = Scalr.crop(biOriginalImg, 0, (heightPix - widthPix) / 2, widthPix, widthPix);
-//            }
-//            BufferedImage biFinalImage = Scalr.resize(biCroppedImage, AVATAR_TARGET_SIZE);
-//            //save final image in local server machine and delete the rest
-//            ImageIO.write(biFinalImage, "png", resizedPng);
-//            biFinalImage.flush();
-//            originalFileOutputStream.close();
-//            originalImgFile.delete();
-//            //save in AWS
-//            String bucketName = "takeabreak";
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new InternalServerErrorException(
-//                    "The server experienced some difficulties or provided image is not in proper file format." +
-//                            "Try with different image. If the message appears again, try again later.");
-//        }
+
+        //save original file into the temp dir
+        String dir = TempDir.getLocation();
+        String imgName = userId + "_" + System.currentTimeMillis();
+        String locationOriginalImg = dir + File.separator + imgName + "." + extension;
+        File originalFile = new File(locationOriginalImg);
+        try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
+            originalFileOutputStream.write(multipartFile.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
+        }
+
+        //rename JPEG to JPG
+        if(extension.equals("jpeg")){
+            File copiedFile = new File(dir + File.separator + imgName + ".jpg");
+            originalFile.renameTo(copiedFile);
+            originalFile = new File(dir + File.separator + imgName + ".jpg");
+            extension = "jpg";
+        }
+
+        try {
+            //check for the image ratio. Should be max 1:4
+            BufferedImage biOriginalImg = ImageIO.read(originalFile);
+            double widthDouble = biOriginalImg.getWidth();
+            double heightDouble = biOriginalImg.getHeight();
+            if(widthDouble / heightDouble < 0.25 || widthDouble / heightDouble > 4){
+                throw new BadRequestException("The image should be with max 1:4 or 4:1 ratio.");
+            }
+            biOriginalImg.flush();
+
+            //in case the image is NOT GIF or JPG, convert it to JPG
+            HashSet<String> typesToBeConverted = new HashSet<>(supportedImageFormats);
+            typesToBeConverted.remove("jpg");
+            typesToBeConverted.remove("jpeg");
+            typesToBeConverted.remove("gif");
+
+            if(typesToBeConverted.contains(extension)){
+                //Rename original file
+                File copiedFile = new File(dir + File.separator + imgName + "_copy." + extension);
+                originalFile.renameTo(copiedFile);
+                File originalFileName = new File(dir + File.separator + imgName + "." + STILL_IMAGE_TYPE);
+                //save original file in JPG format
+                BufferedImage duplicateBufferedImage = ImageIO.read(copiedFile);
+                ImageIO.write(duplicateBufferedImage, "jpeg", originalFileName);
+                duplicateBufferedImage.flush();
+                copiedFile.delete();
+            }
+
+
+            //resize and save in small size
+            File file = new File(dir + File.separator + imgName + "." + extension);
+            BufferedImage biOriginalSize = ImageIO.read(file);
+            File smallSize = new File(dir + File.separator + imgName + "_" + SMALL_IMAGE_CODE + STILL_IMAGE_TYPE);
+            if(biOriginalImg.getWidth() > SMALL_SIZE_WIGHT) {
+                BufferedImage biSmallSize = Scalr.resize(biOriginalSize, SMALL_SIZE_WIGHT);
+                ImageIO.write(biSmallSize, extension, smallSize);
+                biSmallSize.flush();
+            }else{
+                ImageIO.write(biOriginalSize, extension, smallSize);
+            }
+            //resize and save in medium size
+            File mediumSize = new File(dir + File.separator + imgName + "_" + MEDIUM_IMAGE_CODE + STILL_IMAGE_TYPE);
+            if(biOriginalImg.getWidth() > MEDIUM_SIZE_WIGHT) {
+                BufferedImage biMediumSize = Scalr.resize(biOriginalSize, MEDIUM_SIZE_WIGHT);
+                ImageIO.write(biMediumSize, extension, mediumSize);
+                biMediumSize.flush();
+            }else{
+                ImageIO.write(biOriginalSize, extension, mediumSize);
+            }
+            //resize and save in large size
+            File largeSize = new File(dir + File.separator + imgName + "_" + LARGE_IMAGE_CODE + STILL_IMAGE_TYPE);
+            if(biOriginalImg.getWidth() > LARGE_SIZE_WIGHT) {
+                BufferedImage biLargeSize = Scalr.resize(biOriginalSize, LARGE_SIZE_WIGHT);
+                ImageIO.write(biLargeSize, extension, largeSize);
+                biLargeSize.flush();
+            }else{
+                ImageIO.write(biOriginalSize, extension, largeSize);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InternalServerErrorException(
+                    "The server experienced some difficulties or provided image is not in proper file format." +
+                            "Try with different image. If the message appears again, try again later.");
+        }
 
         return null;
     }

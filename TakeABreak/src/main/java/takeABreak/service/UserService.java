@@ -44,16 +44,8 @@ public class UserService {
     private EmailService emailService;
     @Autowired
     private CountryService countryService;
-
+    @Autowired
     private GCloudProperties gCloudProperties;
-    private String avatarFilesPath =
-            "TakeABreak" + File.separator +
-            "src" + File.separator +
-            "main" + File.separator +
-            "resources" + File.separator +
-            "static" + File.separator +
-            "img" + File.separator +
-            "avatars";
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
