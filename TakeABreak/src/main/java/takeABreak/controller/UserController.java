@@ -39,26 +39,23 @@ public class UserController extends AbstractController{
         return responseDto;
     }
 
-    @PostMapping("/user/logout")
+    @PostMapping("/users/logout")
     public void logout(HttpSession ses){
         sessionManager.logoutUser(ses);
     }
 
     @PutMapping("/user/{id}/avatar")
-    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession ses){
-//        User user = sessionManager.getLoggedUser(ses);
-
-        //TODO debugging mode use the line above instead the following lines after login is working
-        Optional<User> optionalUser = userRepository.findById(5);
-        User user = null;
-        if(optionalUser.isPresent()){
-            user = optionalUser.get();
-        }
+    public UploadAvatarDTO upload(@PathVariable(name = "id") int id, @RequestPart MultipartFile file, HttpSession session){
+        User user = sessionManager.getLoggedUser(session);
         if(user.getId() != id){
             throw new BadRequestException("You can't post an avatar to another user's post");
         }
-        ///<-end debugging mode
-
+        Optional<User> optionalUser = userRepository.findById(id);
+        if(optionalUser.isPresent()){
+            user = optionalUser.get();
+        }else{
+            throw new BadRequestException("Server Error. Try to logout and then login again.");
+        }
         return userService.addAvatar(file, user);
     }
 

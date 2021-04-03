@@ -14,13 +14,8 @@ public class AddingRequestPostDTO {
     private String title;
     private String description;
     private int categoryId;
-    private int contentId;
-    private int userId;
+    private boolean adultContent;
+    private String imageCode;
+    private String fileType;
 
-    /*{
-    "title" : "My first funny post with a picture",
-    "description" : "Testing take a break platform",
-    "categoryId" : 5,
-    "userId" : 1
-}*/
 }
