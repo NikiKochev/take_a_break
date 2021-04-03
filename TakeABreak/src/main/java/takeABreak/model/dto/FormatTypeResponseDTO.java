@@ -12,11 +12,11 @@ import takeABreak.model.pojo.Size;
 @Setter
 @Getter
 public class FormatTypeResponseDTO {
-    private Size size;
+    private String size;
     private String url;
 
     public FormatTypeResponseDTO(FormatType f) {
-        size = f.getSize();
+        size = f.getSize().getSize();
         url = f.getUrl();
     }
 }
