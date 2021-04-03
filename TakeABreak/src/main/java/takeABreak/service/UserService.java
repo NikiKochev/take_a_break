@@ -28,7 +28,8 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -48,7 +49,7 @@ public class UserService {
     private GCloudProperties gCloudProperties;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
-        userDTO.setEmail(validationEmail(userDTO.getEmail()));
+        validationEmail(userDTO.getEmail());
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
             throw new BadRequestException("Passwords are not equals");
         }
@@ -73,10 +74,15 @@ public class UserService {
     }
 
     private String validationEmail(String email) {
-        if(email == null || email.trim().equals("")){
-            throw new BadRequestException("Yuo must enter a valid e-mail");
+        if(!validEmail(email)){
+            throw new BadRequestException("You must enter a valid e-mail");
         }
-        return email.trim();
+        return email;
+    }
+
+    public boolean validEmail(String email) {
+        String regEmail = "^([_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(\\.[a-zA-Z]{1,6}))?$".toLowerCase();
+        return email.matches(regEmail);
     }
 
     public UploadAvatarDTO addAvatar(MultipartFile multipartFile, User user) {

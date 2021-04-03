@@ -9,6 +9,7 @@ import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.post.*;
 import takeABreak.model.pojo.FileType;
 import takeABreak.model.pojo.User;
+import takeABreak.model.repository.FileTypeRepository;
 import takeABreak.model.repository.FormatTypeRepository;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.PostService;
@@ -29,9 +30,7 @@ public class PostController extends AbstractController{
     @Autowired
     private PostService postService;
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FormatTypeRepository typeRepository;
+    private FileTypeRepository typeRepository;
     @Value("${file.path}")
     private String filePath;
 

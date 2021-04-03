@@ -4,10 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import takeABreak.controller.AbstractController;
 import takeABreak.model.pojo.User;
 
 @Service
-public class EmailService {
+public class EmailService extends AbstractController {
     private final static String FROM = "nikolaykochev@gmail.com";
 
     private JavaMailSender emailSender;

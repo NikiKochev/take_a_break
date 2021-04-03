@@ -13,7 +13,8 @@ import java.util.Objects;
 @Getter
 @Entity
 @Table(name = "format_type")
-public class FormatType  implements Serializable {
+@IdClass(FormatTypeId.class)
+public class FormatType  {
 
     @Id
     @ManyToOne
