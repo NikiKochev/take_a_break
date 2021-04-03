@@ -43,7 +43,7 @@ public class CommentsDAO {
     }
 
     public List<Comment> findByPost(int id, int page, int perpage) {
-        String query = "SELECT id FROM comments WHERE post_id = "+id+" ORDER BY created_at DESC LIMIT "+
+        String query = "SELECT comments.id FROM comments WHERE comments.post_id = "+id+" ORDER BY comments.created_at DESC LIMIT "+
                 (page*perpage - perpage)+", "+perpage+";";
         return find(query);
     }

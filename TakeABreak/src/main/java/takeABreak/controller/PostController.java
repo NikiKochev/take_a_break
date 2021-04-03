@@ -100,18 +100,18 @@ public class PostController extends AbstractController{
         return postService.likeComment(postDTO, user);
     }
 
-    @GetMapping("posts/{id}")
+    @GetMapping("/posts/{id}")
     public GetByIdResponsePostDTO getById(@PathVariable int id){
         return postService.getById(id);
     }
 
-    @GetMapping("posts/{id}/users")
+    @GetMapping("/posts/{id}/users")
     public GetAllByResponsePostDTO getByUser(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByUser(id, page, perpage);
     }
 
-    @GetMapping("posts/categories/{id}/")
-    public GetAllByResponsePostDTO getByCategory(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
+    @GetMapping("/posts/{id}/categories/")
+    public GetAllByResponsePostDTO getByCategory(@PathVariable(name = "id") int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByCategory(id, page, perpage);
     }
 

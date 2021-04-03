@@ -89,8 +89,9 @@ public class CommentService {
         return new GetByIdResponseCommentDTO(findById(id),true);
     }
 
-    public GetByIdResponseCommentDTO likeComment(int  commentId, User loggedUser) {
+    public GetByIdResponseCommentDTO likeComment(int commentId, int userId, User loggedUser) {
         Comment comment = getCommentById(commentId);
+        checkForUser(loggedUser, userId);
         if(!loggedUser.getLikedComments().contains(comment)) {
             loggedUser.getLikedComments().add(comment);
             loggedUser.getDislikedComments().remove(comment);
@@ -102,8 +103,9 @@ public class CommentService {
         return new GetByIdResponseCommentDTO(comment,true);
     }
 
-    public GetByIdResponseCommentDTO dislikeComment(int commentId, User loggedUser) {
+    public GetByIdResponseCommentDTO dislikeComment(int commentId, int userId, User loggedUser) {
         Comment comment = getCommentById(commentId);
+        checkForUser(loggedUser, userId);
         if(!loggedUser.getDislikedComments().contains(comment)) {
             loggedUser.getDislikedComments().add(comment);
             loggedUser.getLikedComments().remove(comment);
@@ -113,6 +115,13 @@ public class CommentService {
         }
         userService.save(loggedUser);
         return new GetByIdResponseCommentDTO(comment,false);
+    }
+
+    public boolean checkForUser(User user, int userId){
+        if(user.getId() != userId){
+            throw new BadRequestException("You cannot like comment from diferent name");
+        }
+        return true;
     }
 
     public Comment getCommentById(int id){

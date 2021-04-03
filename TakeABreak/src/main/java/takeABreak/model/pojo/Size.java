@@ -16,7 +16,7 @@ public class Size {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int fileUsedForId;
+    private int id;
     private String size;
 
     @OneToMany (mappedBy = "size")

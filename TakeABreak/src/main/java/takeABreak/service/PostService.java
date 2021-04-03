@@ -455,6 +455,7 @@ public class PostService {
 
     public GetAllByResponsePostDTO getByUser(int userId, int page, int perpage) {
         userService.findById(userId);
+        System.out.println("тука продължава");
         return new GetAllByResponsePostDTO(postDAO.findByUser(userId, page, perpage));
     }
 

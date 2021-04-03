@@ -49,40 +49,35 @@ public class UserService {
     private GCloudProperties gCloudProperties;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
-        validationEmail(userDTO.getEmail());
+        checkForPropertyCredential(userDTO);
+        userDTO.setPassword(hashPassword(userDTO.getPassword()));
+        User user = new User(userDTO,verificationCode());
+        repository.save(user);
+        sendEmail(user);
+        return new RegisterResponseUserDTO(user);
+    }
+
+    private void sendEmail(User user) {
+        Thread t= new Thread(() -> emailService.sendSimpleMessage(user));
+        t.start();
+    }
+
+    private void checkForPropertyCredential(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
             throw new BadRequestException("Passwords are not equals");
-        }
-        if (!userDTO.getPassword().equals(userDTO.getPassword().toLowerCase())
-                & !userDTO.getPassword().equals(userDTO.getPassword().toUpperCase())
-                & userDTO.getPassword().matches("-?\\d+(\\.\\d+)?")) {
-            throw new BadRequestException("Wrong credential. Must have digits, upper and lower character at password");
         }
         if (repository.findByEmail(userDTO.getEmail()) != null) {
             throw new BadRequestException("You already have account");
         }
+    }
+
+    private String hashPassword(String password) {
         PasswordEncoder encoder = new BCryptPasswordEncoder();
-        userDTO.setPassword(encoder.encode(userDTO.getPassword()));
-        User user = new User(userDTO);
-        String randomCode = RandomString.make(64);
-        user.setVerification(randomCode);
-        repository.save(user);
-        Thread t= new Thread(() -> emailService.sendSimpleMessage(user));
-        t.start();
-        RegisterResponseUserDTO responseUserDTO = new RegisterResponseUserDTO(user);
-        return responseUserDTO;
+        return encoder.encode(password);
     }
 
-    private String validationEmail(String email) {
-        if(!validEmail(email)){
-            throw new BadRequestException("You must enter a valid e-mail");
-        }
-        return email;
-    }
-
-    public boolean validEmail(String email) {
-        String regEmail = "^([_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(\\.[a-zA-Z]{1,6}))?$".toLowerCase();
-        return email.matches(regEmail);
+    private String verificationCode() {
+        return RandomString.make(64);
     }
 
     public UploadAvatarDTO addAvatar(MultipartFile multipartFile, User user) {
@@ -177,11 +172,12 @@ public class UserService {
     }
 
     public UserDeleteResponseDTO deleteDate(User user) {
+        String date = LocalDate.now().toString();
         user.setDeletedAt(LocalDate.now());
-        user.setAvatar(null);
+        user.setAvatar(date);
         user.setCity(null);
         user.setCountry(null);
-        user.setEmail(null);
+        user.setEmail(date);
         user.setFirstName(null);
         user.setLastName(null);
         repository.save(user);
@@ -225,7 +221,9 @@ public class UserService {
 
     public User findById(int userId) {
         Optional<User> user = repository.findById(userId);
+        System.out.println("тук да авидим за всеки случай");
         if(user.isPresent()){
+            System.out.println("и тука");
             return user.get();
         }
         throw  new BadRequestException("No such person");

@@ -47,8 +47,8 @@ public class CommentController extends AbstractController{
         return commentService.deleteComment(commentDTO);
     }
 
-    @GetMapping("/comments/user/{userId}")
-    public FindResponseCommentDTO getByUser(@PathVariable int userId, @RequestParam int page, @RequestParam int perpage ){
+    @GetMapping("/comments/user/")
+    public FindResponseCommentDTO getByUser(@RequestParam int userId, @RequestParam int page, @RequestParam int perpage ){
         return commentService.findComments(userId, page, perpage);
     }
 
@@ -57,19 +57,19 @@ public class CommentController extends AbstractController{
         return commentService.findCommentsForPost(postId, page, perpage);
     }
 
-    @PostMapping("/comments/like/{commentId}")
-    public GetByIdResponseCommentDTO like(@PathVariable int commentId, HttpSession session){
-        return commentService.likeComment(commentId, sessionManager.getLoggedUser(session));
+    @PostMapping("/comments/like")
+    public GetByIdResponseCommentDTO like(@RequestParam int userId,@RequestParam int commentId, HttpSession session){
+        return commentService.likeComment(commentId, userId,  sessionManager.getLoggedUser(session));
     }
 
     @GetMapping("/comments/{commentId}")
-    public GetByIdResponseCommentDTO getById (@PathVariable int commentId){
+    public GetByIdResponseCommentDTO getById (@PathVariable(name = "commentId") int commentId){
         return commentService.getById(commentId);
     }
 
-    @PostMapping("/comments/dislike/{commentId}")
-    public GetByIdResponseCommentDTO dislike(@PathVariable int commentId, HttpSession session){
-        return commentService.dislikeComment(commentId, sessionManager.getLoggedUser(session));
+    @PostMapping("/comments/dislike")
+    public GetByIdResponseCommentDTO dislike(@RequestParam int userId,@RequestParam int commentId, HttpSession session){
+        return commentService.dislikeComment(commentId, userId, sessionManager.getLoggedUser(session));
     }
 
 }
