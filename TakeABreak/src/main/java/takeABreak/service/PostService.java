@@ -6,6 +6,7 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import org.bytedeco.javacv.FrameGrabber;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,26 +19,23 @@ import takeABreak.exceptions.NotAuthorizedException;
 import takeABreak.model.dao.GCloudProperties;
 import takeABreak.model.dao.PostDAO;
 import takeABreak.model.dto.post.*;
-import takeABreak.model.dto.user.UploadAvatarDTO;
 import takeABreak.model.pojo.*;
 import takeABreak.model.pojo.resizeAnimatedGif.GifUtil;
 import takeABreak.model.repository.*;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import javax.transaction.Transactional;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static takeABreak.service.UserService.AVATAR_TARGET_SIZE;
+import static takeABreak.conf.VideoImage.randomGrabberFFmpegImage;
+
 
 @Service
 public class PostService {
@@ -58,7 +56,7 @@ public class PostService {
     @Autowired
     private SizeService sizeService;
     @Autowired
-    private AddImageToPostResponseDTO addImageToPostResponseDTO;
+    private AddMediaToPostResponseDTO addMediaToPostResponseDTO;
     @Autowired
     private ContentService contentService;
     @Autowired
@@ -66,24 +64,64 @@ public class PostService {
     @Autowired
     private GCloudProperties gCloudProperties;
 
+    @Transactional
+    public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user, String sessionId) {
 
-    public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user) {
-        if(user.getId() != postDTO.getUserId()){
-            throw new BadRequestException("Not the same person");
+        System.out.println(postDTO.getFileType());
+        System.out.println(postDTO.getImageCode());
+
+        if (!postDTO.getFileType().equals("gif") && !postDTO.getFileType().equals("jpg")) {
+            throw new BadRequestException("The provided file type is invalid.");
         }
-        Category category = categoryService.findById(postDTO.getCategoryId());
-        Content content = contentService.findById(postDTO.getContentId());
-        Post post = new Post();
-        post.setCategory(category);
-        post.setUser(user);
-        post.setTitle(postDTO.getTitle());
-        post.setContent(content);
-        post.setCreatedAt(LocalDate.now());
-        if(postDTO.getDescription() !=null) {
-            post.setDescription(postDTO.getDescription());
+
+        String[] imageSizes = {"", "_2", "_3", "_4"};
+
+        for (int i = 0; i < imageSizes.length; i++) {
+
+            String imageURL =
+                    gCloudProperties.getCloudBucketUrl()
+                            + sessionId + "_"
+                            + addMediaToPostResponseDTO.getImageCode()
+                            + imageSizes[i] + "."
+                            + addMediaToPostResponseDTO.getFileType();
+            System.out.println(imageURL);
+            try {
+                URL url = new URL(imageURL);
+                HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+                int responseCode = huc.getResponseCode();
+
+                System.out.println(responseCode);
+
+                if (responseCode != 200) {
+                    throw new BadRequestException("The provided image code or type is not found.");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new BadRequestException("The provided image code or type is not found.");
+            }
+
+            int fileType = 0;
+            if (addMediaToPostResponseDTO.getFileType().equals("jpg")) {
+                fileType = 1;
+            } else {
+                fileType = 2;
+            }
+            Content content = contentService.findById(fileType);
+
+            Category category = categoryService.findById(postDTO.getCategoryId());
+            Post post = new Post();
+            post.setCategory(category);
+            post.setUser(user);
+            post.setTitle(postDTO.getTitle());
+            post.setContent(content);
+            post.setCreatedAt(LocalDate.now());
+            if (postDTO.getDescription() != null) {
+                post.setDescription(postDTO.getDescription());
+            }
         }
-        postRepository.save(post);
-        return new AddingResponsePostDTO(post);
+        postRepository.save(null);
+        return new AddingResponsePostDTO(null);
     }
 
     public AddingContentToPostResponsePostDTO addContent(File f,  FileType type) {
@@ -101,7 +139,7 @@ public class PostService {
         return new AddingContentToPostResponsePostDTO(content);
     }
 
-    public AddImageToPostResponseDTO addImageToPost(MultipartFile multipartFile, String sessionId){
+    public AddMediaToPostResponseDTO addImageToPost(MultipartFile multipartFile, String sessionId){
 
         //get file extension
         String extension = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
@@ -126,7 +164,9 @@ public class PostService {
 
         //save original file into the temp dir
         String dir = TempDir.getLocation();
-        String originalName = sessionId + "_" + System.currentTimeMillis();
+        Long imageCodeLong = System.currentTimeMillis();
+        String imageCode = imageCodeLong.toString();
+        String originalName = sessionId + "_" + imageCode;
         String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
         try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
@@ -136,13 +176,28 @@ public class PostService {
             throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
         }
 
+        //check for the image ratio. Should be max 1:4
+        BufferedImage biOriginalImg = null;
+        try {
+            biOriginalImg = ImageIO.read(originalFile);double widthDouble = biOriginalImg.getWidth();
+            double heightDouble = biOriginalImg.getHeight();
+            if(widthDouble / heightDouble < 0.25 || widthDouble / heightDouble > 4){
+                throw new BadRequestException("The image should be with max 1:4 or 4:1 ratio.");
+            }
+            biOriginalImg.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
+        }
+
+
         String smallName = originalName + "_" + SMALL_IMAGE_CODE;
         String mediumName = originalName + "_" + MEDIUM_IMAGE_CODE;
         String largeName = originalName + "_" + LARGE_IMAGE_CODE;
 
         //Resize depending of type Still Image or GIF
         if(extension.equals("gif")){
-            resizeGif(locationOriginalImg);
+            resizeGif(dir, originalName, smallName, mediumName, largeName);
         }else{
             resizeStillImage(dir, originalName, smallName, mediumName, largeName, extension);
         }
@@ -172,6 +227,9 @@ public class PostService {
                 InputStream inStreamFinalImage = new FileInputStream(file);
                 Blob blob = bucket.create(fileNames.get(i) + "." + extension, inStreamFinalImage);
 
+                //delete files from temp folder
+                inStreamFinalImage.close();
+                file.delete();
 
             }
         } catch (Exception e) {
@@ -180,10 +238,18 @@ public class PostService {
                     "The server experienced some difficulties, try again later.");
         }
 
-        return addImageToPostResponseDTO;
+
+        if(extension.equals("gif")){
+            addMediaToPostResponseDTO.setFileType("gif");
+        }else{
+            addMediaToPostResponseDTO.setFileType("jpg");
+        }
+        addMediaToPostResponseDTO.setImageCode(imageCode);
+
+        return addMediaToPostResponseDTO;
     }
 
-    private void resizeStillImage(String dir, String originalName, String smallName, String mediumName, String LargeName, String extension){
+    private void resizeStillImage(String dir, String originalName, String smallName, String mediumName, String largeName, String extension){
 
         String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
@@ -196,14 +262,7 @@ public class PostService {
         }
 
         try {
-            //check for the image ratio. Should be max 1:4
             BufferedImage biOriginalImg = ImageIO.read(originalFile);
-            double widthDouble = biOriginalImg.getWidth();
-            double heightDouble = biOriginalImg.getHeight();
-            if(widthDouble / heightDouble < 0.25 || widthDouble / heightDouble > 4){
-                throw new BadRequestException("The image should be with max 1:4 or 4:1 ratio.");
-            }
-            biOriginalImg.flush();
 
             //in case the image is NOT GIF or JPG, convert it to JPG
             HashSet<String> typesToBeConverted = new HashSet<>();
@@ -260,11 +319,78 @@ public class PostService {
         }
     }
 
-    private void resizeGif(String gifPath){
-//        File destFile = new File(locationOriginalImg+".gif");
-//        GifUtil.gifInputToOutput(originalFile, destFile);
+    private void resizeGif(String dir, String originalName, String smallName, String mediumName, String largeName){
+
+        int[] imageSizes = {SMALL_SIZE_WIGHT, MEDIUM_SIZE_WIGHT, LARGE_SIZE_WIGHT};
+        String[] imageNames = {smallName, mediumName, largeName};
+
+        for (int i = 0; i < imageSizes.length; i++) {
+            String originalLocation = dir + File.separator + originalName + ".gif";
+            String resizedLocation = dir + File.separator + imageNames[i] + ".gif";
+            File originalFile = new File(originalLocation);
+            File destFile = new File(resizedLocation);
+
+            try {
+                GifUtil.gifInputToOutput(originalFile, destFile, imageSizes[i]);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new InternalServerErrorException(
+                        "The server experienced some difficulties or provided image is not in proper file format." +
+                                "Try with different image. If the message appears again, try again later.");
+            }
+        }
+
     }
 
+    public AddMediaToPostResponseDTO addVideoToPost(MultipartFile multipartFile, String sessionId){
+
+        //get file extension
+        String extension = multipartFile.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
+        extension = extension.toLowerCase();
+
+        //check if the file format is supported
+        HashSet<String> supportedImageFormats = new HashSet();
+        supportedImageFormats.add("avi");
+        supportedImageFormats.add("asf");
+        supportedImageFormats.add("flv");
+        supportedImageFormats.add("mp4");
+        supportedImageFormats.add("mpeg");
+        supportedImageFormats.add("mpg");
+        supportedImageFormats.add("webm");
+        supportedImageFormats.add("3g2");
+        supportedImageFormats.add("mkv");
+        supportedImageFormats.add("m4v");
+        supportedImageFormats.add("mov");
+        if(!supportedImageFormats.contains(extension)){
+            throw new BadRequestException("Unsupported file type.");
+        }
+
+        //Max accepted is limited by spring in application.properties
+
+        //save original file into the temp dir
+        String dir = TempDir.getLocation();
+        Long mediaCodeLong = System.currentTimeMillis();
+        String mediaCode = mediaCodeLong.toString();
+        String originalName = sessionId + "_" + mediaCode;
+        String locOriginalMedia = dir + File.separator + originalName + "." + extension;
+        File originalFile = new File(locOriginalMedia);
+        try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
+            originalFileOutputStream.write(multipartFile.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
+        }
+
+        //thumbnails
+        try {
+            System.out.println(randomGrabberFFmpegImage(locOriginalMedia, 2));
+        } catch (FrameGrabber.Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return addMediaToPostResponseDTO;
+    }
 
     public DisLikeResponsePostDTO dislikeComment(DisLikeRequestPostDTO postDTO, User user) {
         Post post = findById(postDTO.getPostId());

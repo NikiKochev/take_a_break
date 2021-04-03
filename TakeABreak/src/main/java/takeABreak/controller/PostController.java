@@ -4,18 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotAuthorizedException;
 import takeABreak.exceptions.NotFoundException;
-import takeABreak.model.dto.categorory.AllCategoryResponseDTO;
 import takeABreak.model.dto.post.*;
-import takeABreak.model.pojo.Category;
 import takeABreak.model.pojo.FileType;
-import takeABreak.model.pojo.Post;
 import takeABreak.model.pojo.User;
-import takeABreak.model.repository.CategoryRepository;
 import takeABreak.model.repository.FormatTypeRepository;
-import takeABreak.model.repository.PostRepository;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.PostService;
 
@@ -24,8 +18,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Optional;
+
 
 @RestController
 public class PostController extends AbstractController{
@@ -43,15 +37,28 @@ public class PostController extends AbstractController{
 
     @PutMapping("/posts")
     public AddingResponsePostDTO addPost(@RequestBody AddingRequestPostDTO postDTO, HttpSession session){
-        User u = sessionManager.getLoggedUser(session);
-        return postService.addPost(postDTO, u);
+        User user = sessionManager.getLoggedUser(session);
+        String sessionId = session.getId();
+        System.out.println(postDTO.getCategoryId());
+        System.out.println(postDTO.getImageCode());
+        System.out.println(postDTO.getTitle());
+        return postService.addPost(postDTO, user, sessionId);
     }
 
     @PutMapping("/posts/add/image")
-    public AddImageToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession session){
-        User user = sessionManager.getLoggedUser(session);
-        String sessionId =  session.getId();
+    public AddMediaToPostResponseDTO addImageToPost(@RequestPart MultipartFile file, HttpSession session){
+        sessionManager.getLoggedUser(session);
+        String sessionId = session.getId();
         return postService.addImageToPost(file, sessionId);
+    }
+
+
+
+    @PutMapping("/posts/add/video")
+    public AddMediaToPostResponseDTO addVideoToPost(@RequestPart MultipartFile file, HttpSession session){
+        sessionManager.getLoggedUser(session);
+        String sessionId = session.getId();
+        return postService.addVideoToPost(file, sessionId);
     }
 
     @PutMapping("/posts/{id}/type")

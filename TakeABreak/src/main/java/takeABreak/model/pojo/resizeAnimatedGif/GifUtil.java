@@ -22,10 +22,11 @@ import javax.swing.ImageIcon;
 
 public class GifUtil {
 
-  static int MAX_IMAGE_DIMENSION = 240;
+  static int MAX_IMAGE_DIMENSION;
 
-  public static void gifInputToOutput(File source, File destination)
+  public static void gifInputToOutput(File source, File destination, int resizedWidth)
           throws FileNotFoundException, IOException {
+    MAX_IMAGE_DIMENSION = resizedWidth;
     GifDecoder decoder = new GifDecoder();
     decoder.read(new FileInputStream(source));
     // creo l'encoder
