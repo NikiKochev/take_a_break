@@ -13,12 +13,12 @@ import takeABreak.model.pojo.Size;
 @Component
 public class AddingResponseContentDTO {
 
-    private int contentId;
+    private String contentId;
     private int fileTypeId;
     private int sizeId;
     private String url;
 
-    public AddingResponseContentDTO(int id, FileType fileType, Size size, String url) {
+    public AddingResponseContentDTO(String id, FileType fileType, Size size, String url) {
         contentId = id;
         fileTypeId = fileType.getId();
         sizeId = size.getFileUsedForId();
