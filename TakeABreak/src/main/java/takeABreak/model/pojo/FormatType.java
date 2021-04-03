@@ -30,22 +30,5 @@ public class FormatType  {
 
     private String url;
 
-    public FormatType(Content content, String absolutePath, Size byId) {
-        size = byId;
-    }
 
-        @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FormatType that = (FormatType) o;
-        return Objects.equals(content, that.content) &&
-                Objects.equals(size, that.size) &&
-                Objects.equals(url, that.url);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(content, size, url);
-    }
 }

@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 public class ContentResponseDTO {
 
-    private String id;
+    private long id;
     private FileTypeResponseDTO fileType;
     private List<FormatTypeResponseDTO> formatTypes;
 

@@ -60,22 +60,6 @@ public class PostController extends AbstractController{
         return postService.addVideoToPost(file, sessionId);
     }
 
-    @PutMapping("/posts/{id}/type")
-    public AddingContentToPostResponsePostDTO addContentToPost(@PathVariable(name = "id") int typeId, @RequestPart MultipartFile file, HttpSession ses) throws IOException {
-        sessionManager.getLoggedUser(ses);
-        Optional<FileType> t = typeRepository.findById(typeId);
-        if(!t.isPresent()){
-            throw new NotFoundException("file type not found");
-        }
-        FileType fileType = t.get();
-        File f = new File(filePath + File.separator + typeId+"_"+System.nanoTime() +".png");
-        OutputStream os = new FileOutputStream(f);
-        os.write(file.getBytes());
-        os.close();
-        AddingContentToPostResponsePostDTO add = postService.addContent(f, fileType);
-        return add;
-    }
-
     @DeleteMapping("/posts")
     public DeleteResponsePostDTO deletePost(@RequestBody DeleteRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
