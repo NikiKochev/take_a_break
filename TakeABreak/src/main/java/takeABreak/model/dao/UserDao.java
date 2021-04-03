@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.user.SearchForUsersRequestDTO;
+import takeABreak.model.pojo.Post;
 import takeABreak.model.pojo.User;
 import takeABreak.service.UserService;
 
@@ -22,10 +23,10 @@ public class UserDao {
     @Autowired
     private UserService userService;
     @Autowired
-    DBCredentials credentials;
+    private DBCredentials credentials;
+
 
     public List<User> findBy(SearchForUsersRequestDTO searchDTO){
-        List<User> users = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT id FROM users WHERE ");
         String firsName = searchDTO.getFirstName();
         if(firsName != null && !firsName.trim().equals("")){
@@ -51,7 +52,11 @@ public class UserDao {
             query.append(" AND age = "+searchDTO.getAge());
         }
         query.append(" LIMIT "+ (searchDTO.getPage()*searchDTO.getPerpage() - searchDTO.getPerpage())+ ", "+ searchDTO.getPerpage());
-        String find = query.toString();
+       return find(query.toString());
+    }
+
+    public List<User> find(String find) {
+        List<User> users = new ArrayList<>();
         try(Connection connection = DriverManager.getConnection(credentials.getUrl(), credentials.getUsername(), credentials.getPassword());
             PreparedStatement statement = connection.prepareStatement(find)) {
             ResultSet result = statement.executeQuery();

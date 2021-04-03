@@ -48,6 +48,7 @@ public class UserService {
     private GCloudProperties gCloudProperties;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
+        userDTO.setEmail(validationEmail(userDTO.getEmail()));
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
             throw new BadRequestException("Passwords are not equals");
         }
@@ -69,6 +70,13 @@ public class UserService {
         t.start();
         RegisterResponseUserDTO responseUserDTO = new RegisterResponseUserDTO(user);
         return responseUserDTO;
+    }
+
+    private String validationEmail(String email) {
+        if(email == null || email.trim().equals("")){
+            throw new BadRequestException("Yuo must enter a valid e-mail");
+        }
+        return email.trim();
     }
 
     public UploadAvatarDTO addAvatar(MultipartFile multipartFile, User user) {
@@ -154,9 +162,7 @@ public class UserService {
     }
 
     public LoginUserResponseDTO getById(int id) {
-
         return new LoginUserResponseDTO(findById(id));
-
     }
 
     public byte[] getAvatar(User user) throws IOException {
