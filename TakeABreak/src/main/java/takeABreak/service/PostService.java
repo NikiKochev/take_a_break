@@ -16,6 +16,7 @@ import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.InternalServerErrorException;
 import takeABreak.exceptions.NotAuthorizedException;
 
+import takeABreak.model.dao.FormatTypeDAO;
 import takeABreak.model.dao.GCloudProperties;
 import takeABreak.model.dao.PostDAO;
 import takeABreak.model.dto.post.*;
@@ -54,8 +55,6 @@ public class PostService {
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private SizeService sizeService;
-    @Autowired
     private AddMediaToPostResponseDTO addMediaToPostResponseDTO;
     @Autowired
     private ContentService contentService;
@@ -65,80 +64,51 @@ public class PostService {
     private GCloudProperties gCloudProperties;
     @Autowired
     private FileTypeRepository fileTypeRepository;
+    @Autowired
+    private ContentRepository contentRepository;
+    @Autowired
+    FormatTypeDAO formatTypeDAO;
+    @Autowired
+    CategoryRepository categoryRepository;
 
-    @Transactional
+//    @Transactional
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user, String sessionId) {
 
-        System.out.println(postDTO.getFileType());
-        System.out.println(postDTO.getImageCode());
+        List<Content> contentWithSession = contentRepository.findAllBySession(sessionId);
 
-        if (!postDTO.getFileType().equals("gif") && !postDTO.getFileType().equals("jpg")) {
-            throw new BadRequestException("The provided file type is invalid.");
+        if (contentWithSession.size() != 1){
+            throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
         }
 
-        String[] imageSizes = {"", "_2", "_3", "_4"};
+        Content content = contentWithSession.get(0);
 
-        for (int i = 0; i < imageSizes.length; i++) {
+        if (!content.getSession().equals(sessionId) || content.getId() != postDTO.getContentId()){
+            throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
+        }
 
-            String imageURL =
-                    gCloudProperties.getCloudBucketUrl()
-                            + sessionId + "_"
-                            + addMediaToPostResponseDTO.getImageCode()
-                            + imageSizes[i] + "."
-                            + addMediaToPostResponseDTO.getFileType();
-            System.out.println(imageURL);
-            try {
-                URL url = new URL(imageURL);
-                HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-                int responseCode = huc.getResponseCode();
+        Post post = new Post();
 
-                System.out.println(responseCode);
+        post.setTitle(postDTO.getTitle());
 
-                if (responseCode != 200) {
-                    throw new BadRequestException("The provided image code or type is not found.");
-                }
+        post.setDescription(postDTO.getDescription());
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new BadRequestException("The provided image code or type is not found.");
-            }
-
-            int fileType = 0;
-            if (addMediaToPostResponseDTO.getFileType().equals("jpg")) {
-                fileType = 1;
-            } else {
-                fileType = 2;
-            }
-            Content content = contentService.findById(fileType);
-
-            Category category = categoryService.findById(postDTO.getCategoryId());
-            Post post = new Post();
+        Optional<Category> categoryOps = categoryRepository.findById(postDTO.getCategoryId());
+        if (categoryOps.isPresent()){
+            Category category = categoryOps.get();
             post.setCategory(category);
-            post.setUser(user);
-            post.setTitle(postDTO.getTitle());
-            post.setContent(content);
-            post.setCreatedAt(LocalDate.now());
-            if (postDTO.getDescription() != null) {
-                post.setDescription(postDTO.getDescription());
-            }
         }
-        postRepository.save(null);
-        return new AddingResponsePostDTO(null);
-    }
 
-    public AddingContentToPostResponsePostDTO addContent(File f,  FileType type) {
-        Content content = new Content();
-        content.setFileType(type);
-        //todo тука трябва да се създадт няколко различни файла с различна големина и да се подадат и да се създадат обекти FormatType
-        //аз съм го направил за един формат
-        // всички тези контенти да се пратят на addCo...
-        List<FormatType> formatList = new ArrayList<>();
-        FormatType formatType = new FormatType(content, f.getAbsolutePath(),sizeService.findById(1));
-        formatList.add(formatType);
-        // тук ще трябва да са въведени всички видове снимки или видеа
-        content.setFormatTypes(formatList);
-        contentService.save(content);
-        return new AddingContentToPostResponsePostDTO(content);
+        post.setAdultContent(postDTO.isAdultContent());
+
+        post.setContent(content);
+
+        post.setCreatedAt(LocalDate.now());
+
+        post.setUser(user);
+
+        postRepository.save(post);
+
+        return new AddingResponsePostDTO(post);
     }
 
     public AddMediaToPostResponseDTO addImageToPost(MultipartFile multipartFile, String sessionId){
@@ -166,10 +136,10 @@ public class PostService {
 
         //save original file into the temp dir
         String dir = TempDir.getLocation();
-        Long imageCodeLong = System.nanoTime();
+        Long imageCodeLong = System.currentTimeMillis();
         String imageCode = imageCodeLong.toString();
-//        String originalName = sessionId + "_" + imageCode;
-        String originalName = imageCode;
+        imageCode = imageCode.substring(imageCode.length()-8);
+        String originalName = sessionId + "_" + imageCode;
 
         String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
@@ -238,14 +208,18 @@ public class PostService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new InternalServerErrorException(
-                    "The server experienced some difficulties, try again later.");
+            throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
         }
 
-        //Make content object
-        int fileTypeCode = 1;
+        //Make content object and save in DB
+        int fileTypeCode = 0;
         if(extension.equals("gif")){
             fileTypeCode = 2;
+        }
+        if(extension.equals("jpg")){
+            fileTypeCode = 1;
+        }else {
+            fileTypeCode = 3;
         }
 
         Content content = new Content();
@@ -254,15 +228,20 @@ public class PostService {
             FileType fileType = fileTypeOps.get();
             content.setFileType(fileType);
         }
-//        content.setId(originalName);
 
+        int imageCodeInt = Integer.parseInt(imageCode);
+        content.setId(imageCodeInt);
+        content.setSession(sessionId);
+        contentRepository.save(content);
 
-        if(extension.equals("gif")){
-            addMediaToPostResponseDTO.setFileType("gif");
-        }else{
-            addMediaToPostResponseDTO.setFileType("jpg");
+        //make 4 formatType objects and save them in DB
+        for (int i = 1; i < fileNames.size()+1; i++) {
+
+            String url = gCloudProperties.getCloudBucketUrl() + fileNames.get(i-1) + "." + extension;
+            formatTypeDAO.saveFormatType(i, url, content.getId());
         }
-        addMediaToPostResponseDTO.setImageCode(imageCode);
+
+        addMediaToPostResponseDTO.setContentId(content.getId());
 
         return addMediaToPostResponseDTO;
     }

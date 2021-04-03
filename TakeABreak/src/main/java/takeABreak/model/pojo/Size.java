@@ -15,11 +15,7 @@ import java.util.List;
 public class Size {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String size;
 
-    @OneToMany (mappedBy = "size")
-    @JsonManagedReference
-    private List<FormatType> mediaStorageLocations;
 }
