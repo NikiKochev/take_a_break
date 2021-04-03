@@ -19,7 +19,7 @@ public class Content {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private String id;
 
     @OneToOne(mappedBy = "content")
     @JsonBackReference

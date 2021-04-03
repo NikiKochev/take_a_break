@@ -63,6 +63,8 @@ public class PostService {
     private UserService userService;
     @Autowired
     private GCloudProperties gCloudProperties;
+    @Autowired
+    private FileTypeRepository fileTypeRepository;
 
     @Transactional
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user, String sessionId) {
@@ -164,9 +166,11 @@ public class PostService {
 
         //save original file into the temp dir
         String dir = TempDir.getLocation();
-        Long imageCodeLong = System.currentTimeMillis();
+        Long imageCodeLong = System.nanoTime();
         String imageCode = imageCodeLong.toString();
-        String originalName = sessionId + "_" + imageCode;
+//        String originalName = sessionId + "_" + imageCode;
+        String originalName = imageCode;
+
         String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
         try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
@@ -237,6 +241,20 @@ public class PostService {
             throw new InternalServerErrorException(
                     "The server experienced some difficulties, try again later.");
         }
+
+        //Make content object
+        int fileTypeCode = 1;
+        if(extension.equals("gif")){
+            fileTypeCode = 2;
+        }
+
+        Content content = new Content();
+        Optional<FileType> fileTypeOps = fileTypeRepository.findById(fileTypeCode);
+        if (fileTypeOps.isPresent()){
+            FileType fileType = fileTypeOps.get();
+            content.setFileType(fileType);
+        }
+//        content.setId(originalName);
 
 
         if(extension.equals("gif")){
