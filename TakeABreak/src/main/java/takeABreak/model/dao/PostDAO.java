@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.pojo.Post;
-import takeABreak.model.repository.PostRepository;
 import takeABreak.service.PostService;
 
 import java.sql.*;

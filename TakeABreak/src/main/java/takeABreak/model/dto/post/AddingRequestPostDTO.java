@@ -14,8 +14,7 @@ public class AddingRequestPostDTO {
     private String title;
     private String description;
     private int categoryId;
-    private boolean adultContent;
-    private String imageCode;
-    private String fileType;
+    private boolean isAdultContent;
+    private int contentId;
 
 }

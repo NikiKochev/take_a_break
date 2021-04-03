@@ -6,12 +6,8 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import takeABreak.exceptions.InternalServerErrorException;
-import takeABreak.exceptions.NotFoundException;
-import takeABreak.model.pojo.Post;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @NoArgsConstructor

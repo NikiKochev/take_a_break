@@ -38,9 +38,6 @@ public class PostController extends AbstractController{
     public AddingResponsePostDTO addPost(@RequestBody AddingRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
         String sessionId = session.getId();
-        System.out.println(postDTO.getCategoryId());
-        System.out.println(postDTO.getImageCode());
-        System.out.println(postDTO.getTitle());
         return postService.addPost(postDTO, user, sessionId);
     }
 

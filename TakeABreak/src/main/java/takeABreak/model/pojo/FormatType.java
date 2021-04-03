@@ -25,10 +25,8 @@ public class FormatType  {
     @Id
     @ManyToOne
     @JoinColumn(name = "size")
-    @JsonBackReference
     private Size size;
 
     private String url;
-
-
+    
 }

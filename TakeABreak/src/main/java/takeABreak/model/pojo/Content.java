@@ -1,6 +1,7 @@
 package takeABreak.model.pojo;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class Content {
     @Id
     private int id;
 
+    @JsonIgnore
     private String session;
 
     @OneToOne(mappedBy = "content")
