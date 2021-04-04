@@ -25,7 +25,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
  */
 public class VideoImage {
 
-    private static final String IMAGEMAT = "png";
+    private static final String IMAGEMAT = "jpg";
     private static final String ROTATE = "rotate";
 
 
@@ -70,7 +70,7 @@ public class VideoImage {
      */
     private static String getImagePath(String filePath, int index){
         if(filePath.contains(".") && filePath.lastIndexOf(".") < filePath.length() - 1){
-            filePath = filePath.substring(0, filePath.lastIndexOf(".")).concat("_").concat(String.valueOf(index)).concat(".").concat(IMAGEMAT);
+            filePath = filePath.substring(0, filePath.lastIndexOf(".")).concat(".").concat(IMAGEMAT);
         }
         return filePath;
     }
