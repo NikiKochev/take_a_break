@@ -72,7 +72,7 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/users/account")
-    public LoginUserResponseDTO editUser(@Valid @RequestBody EditResponseUserDTO userDTO, HttpSession session){
+    public LoginUserResponseDTO editUser(@Valid @RequestBody EditRequestUserDTO userDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
         LoginUserResponseDTO responseDTO = userService.editUser(user, userDTO);
         if(userDTO.getPassword() != null){
