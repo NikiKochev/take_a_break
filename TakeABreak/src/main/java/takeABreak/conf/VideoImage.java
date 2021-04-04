@@ -52,7 +52,7 @@ public class VideoImage {
                     IplImage src = converter.convert(f);
                     f = converter.convert(rotate(src, Integer.valueOf(rotate)));
                 }
-                targetFilePath = getImagePath(filePath, i);
+                targetFilePath = getImagePath(filePath, 0);
                 doExecuteFrame(f, targetFilePath);
                 break;
             }

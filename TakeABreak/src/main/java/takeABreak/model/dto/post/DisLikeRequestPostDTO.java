@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class DisLikeRequestPostDTO {
 
-    private int userId;
     private int postId;
     /*{
     "userId" : 3,

@@ -27,8 +27,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import javax.transaction.Transactional;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +34,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static takeABreak.conf.VideoImage.randomGrabberFFmpegImage;
+
+import com.cloudmersive.client.invoker.ApiClient;
+import com.cloudmersive.client.invoker.ApiException;
+import com.cloudmersive.client.invoker.Configuration;
+import com.cloudmersive.client.invoker.auth.*;
+import com.cloudmersive.client.VideoApi;
+
 
 
 @Service
@@ -57,8 +62,6 @@ public class PostService {
     @Autowired
     private AddMediaToPostResponseDTO addMediaToPostResponseDTO;
     @Autowired
-    private ContentService contentService;
-    @Autowired
     private UserService userService;
     @Autowired
     private GCloudProperties gCloudProperties;
@@ -71,16 +74,16 @@ public class PostService {
     @Autowired
     CategoryRepository categoryRepository;
 
-//    @Transactional
+    @Transactional
     public AddingResponsePostDTO addPost(AddingRequestPostDTO postDTO, User user, String sessionId) {
 
         List<Content> contentWithSession = contentRepository.findAllBySession(sessionId);
 
-        if (contentWithSession.size() != 1){
+        if (contentWithSession.size() == 0){
             throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
         }
 
-        Content content = contentWithSession.get(0);
+        Content content = contentWithSession.get(contentWithSession.size()-1);
 
         if (!content.getSession().equals(sessionId) || content.getId() != postDTO.getContentId()){
             throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
@@ -370,6 +373,7 @@ public class PostService {
         String mediaCode = mediaCodeLong.toString();
         String originalName = sessionId + "_" + mediaCode;
         String locOriginalMedia = dir + File.separator + originalName + "." + extension;
+
         File originalFile = new File(locOriginalMedia);
         try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
             originalFileOutputStream.write(multipartFile.getBytes());
@@ -378,9 +382,40 @@ public class PostService {
             throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
         }
 
+        //send for conversion to Cloudmersive
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+// Configure API key authorization: Apikey
+        ApiKeyAuth Apikey = (ApiKeyAuth) defaultClient.getAuthentication("Apikey");
+        Apikey.setApiKey("bdc069d1-6856-435e-b8b8-2b3ab86989fc");
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//Apikey.setApiKeyPrefix("Token");
+
+        VideoApi apiInstance = new VideoApi();
+        File inputFile = new File(locOriginalMedia); // File | Input file to perform the operation on.
+        System.out.println(locOriginalMedia);
+        String fileUrl = null; // String | Optional; URL of a video file being used for conversion. Use this option for files larger than 2GB.
+        Integer maxWidth = 0; // Integer | Optional; Maximum width of the output video, up to the original video width. Defaults to original video width.
+        Integer maxHeight = 0; // Integer | Optional; Maximum height of the output video, up to the original video width. Defaults to original video height.
+        Boolean preserveAspectRatio = true; // Boolean | Optional; If false, the original video's aspect ratio will not be preserved, allowing customization of the aspect ratio using maxWidth and maxHeight, potentially skewing the video. Default is true.
+        Integer frameRate = 0; // Integer | Optional; Specify the frame rate of the output video. Defaults to original video frame rate.
+        Integer quality = 0; // Integer | Optional; Specify the quality of the output video, where 100 is lossless and 1 is the lowest possible quality with highest compression. Default is 50.
+        try {
+
+            byte[] result = apiInstance.videoConvertToMp4(inputFile, fileUrl, maxWidth, maxHeight, preserveAspectRatio, frameRate, quality, true);
+            File resizedFile = new File(locOriginalMedia + "new.mp4");
+            OutputStream resizedFileOutputStream = new FileOutputStream(resizedFile);
+            resizedFileOutputStream.write(multipartFile.getBytes());
+            System.out.println(result);
+
+        } catch (Exception e) {
+            System.err.println("Exception when calling VideoApi#videoConvertToMp4");
+            e.printStackTrace();
+        }
+
         //thumbnails
         try {
-            System.out.println(randomGrabberFFmpegImage(locOriginalMedia, 2));
+            randomGrabberFFmpegImage(locOriginalMedia, 2);
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
         }

@@ -55,6 +55,7 @@ public class User {
     )
     @JsonManagedReference
     private List<Comment> likedComments;
+
     @ManyToMany
     @JoinTable(
             name = "users_dislike_comments",
@@ -72,6 +73,7 @@ public class User {
     )
     @JsonManagedReference
     private List<Post> likedPosts;
+
     @ManyToMany
     @JoinTable(
             name = "users_dislike_posts",

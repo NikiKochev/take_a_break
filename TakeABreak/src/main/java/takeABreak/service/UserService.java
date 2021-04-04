@@ -161,6 +161,15 @@ public class UserService {
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
         PasswordEncoder encoder = new BCryptPasswordEncoder();;
+
+        //testing GIT
+
+        int testingGit = 5;
+
+        //testing GIT
+
+
+
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
         }
