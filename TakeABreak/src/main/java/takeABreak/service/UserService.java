@@ -1,8 +1,5 @@
 package takeABreak.service;
 
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.*;
 import net.bytebuddy.utility.RandomString;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.InternalServerErrorException;
-import takeABreak.model.dao.GCloudProperties;
+import takeABreak.model.dao.GCloud;
 import takeABreak.model.dao.UserDao;
 import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.TempDir;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import java.io.*;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -43,7 +39,7 @@ public class UserService {
     @Autowired
     private CountryService countryService;
     @Autowired
-    private GCloudProperties gCloudProperties;
+    private GCloud gCloud;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
         checkForPropertyCredential(userDTO);
@@ -122,20 +118,15 @@ public class UserService {
                 biCroppedImage = Scalr.crop(biOriginalImg, 0, (heightPix - widthPix) / 2, widthPix, widthPix);
             }
             BufferedImage biFinalImage = Scalr.resize(biCroppedImage, AVATAR_TARGET_SIZE);
+
             //save final image in local server machine and delete the rest
             ImageIO.write(biFinalImage, "png", resizedPng);
             originalFileOutputStream.close();
             originalImgFile.delete();
             biFinalImage.flush();
-            //save in Google Cloud
-            Credentials credentials = GoogleCredentials
-                    .fromStream(new FileInputStream(gCloudProperties.getCredentials()));
-            Storage storage = StorageOptions.newBuilder().setCredentials(credentials)
-                    .setProjectId(gCloudProperties.getProjectId()).build().getService();
-            Bucket bucket = storage.get(gCloudProperties.getBucket());
 
-            InputStream inStreamFinalImage = new FileInputStream(resizedPngLocation);
-            Blob blob = bucket.create(imgName + AVATAR_IMAGE_TYPE, inStreamFinalImage);
+            //save in Google Cloud
+            gCloud.addToGCloudAndDeleteFromLocal(resizedPngLocation, imgName + AVATAR_IMAGE_TYPE);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,7 +135,7 @@ public class UserService {
                             "Try with different image. If the message appears again, try again later.");
         }
 
-        user.setAvatar(gCloudProperties.getCloudBucketUrl() + imgName + AVATAR_IMAGE_TYPE);
+        user.setAvatar(gCloud.getCloudBucketUrl() + imgName + AVATAR_IMAGE_TYPE);
         repository.save(user);
         UploadAvatarDTO avatar = new UploadAvatarDTO(repository.findById(user.getId()).get().getAvatar(), user.getId());
         return avatar;
