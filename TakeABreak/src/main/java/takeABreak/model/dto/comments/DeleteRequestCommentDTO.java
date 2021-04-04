@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Getter
 public class DeleteRequestCommentDTO {
 
-    private int userId;
     private int commentId;
     /*{
     "user_id" : 3,

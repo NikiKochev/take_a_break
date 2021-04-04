@@ -65,18 +65,12 @@ public class PostController extends AbstractController{
     @PostMapping("/posts/dislike")
     public DisLikeResponsePostDTO dislike(@RequestBody DisLikeRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        if(user.getId() != postDTO.getUserId()){
-            throw new NotAuthorizedException("cannot dislike this post");
-        }
         return postService.dislikeComment(postDTO, user);
     }
 
     @PostMapping("/posts/like")
     public DisLikeResponsePostDTO like(@RequestBody DisLikeRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        if(user.getId() != postDTO.getUserId()){
-            throw new NotAuthorizedException("cannot like this post");
-        }
         return postService.likeComment(postDTO, user);
     }
 
@@ -90,12 +84,12 @@ public class PostController extends AbstractController{
         return postService.getByUser(id, page, perpage);
     }
 
-    @GetMapping("/posts/{id}/categories/")
+    @GetMapping("/posts/{id}/categories")
     public GetAllByResponsePostDTO getByCategory(@PathVariable(name = "id") int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByCategory(id, page, perpage);
     }
 
-    @GetMapping("/posts/")
+    @GetMapping("/posts")
     public GetAllByResponsePostDTO getLast(@RequestParam int page, @RequestParam int perpage){
         return postService.getByLast(page, perpage);
     }

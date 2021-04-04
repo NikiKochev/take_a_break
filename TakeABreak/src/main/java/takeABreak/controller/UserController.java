@@ -28,7 +28,7 @@ public class UserController extends AbstractController{
     private UserRepository userRepository;
     @Autowired
     private SessionManager sessionManager;
-    @PutMapping("/user")
+    @PutMapping("/users")
     public RegisterResponseUserDTO register(@Valid @RequestBody RegisterRequestUserDTO userDTO){
         return userService.addUser(userDTO);
     }
@@ -65,22 +65,15 @@ public class UserController extends AbstractController{
         return userService.getById(id);
     }
 
-    @GetMapping(value = "/users/avatar/{id}", produces = "image/*")
-    public byte[] downloadById(@PathVariable int id, HttpSession ses) throws IOException {
-        sessionManager.getLoggedUser(ses);
-        return userService.getAvatar(userService.findById(id));
-    }
-
-    @DeleteMapping("/user/{id}")
-    public UserDeleteResponseDTO deleteUser(@PathVariable int id,HttpSession session){
+    @DeleteMapping("/users")
+    public UserDeleteResponseDTO deleteUser(HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        if(user.getId() != id){
-            throw new BadRequestException("You can't delete other profile");
-        }
-        return userService.deleteDate(user);
+        UserDeleteResponseDTO responseDTO = userService.deleteDate(user);
+        logout(session);
+        return responseDTO;
     }
 
-    @PutMapping("/user/{id}")
+    @PutMapping("/users/account")
     public LoginUserResponseDTO editUser(@Valid @RequestBody EditResponseUserDTO userDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
         LoginUserResponseDTO responseDTO = userService.editUser(user, userDTO);

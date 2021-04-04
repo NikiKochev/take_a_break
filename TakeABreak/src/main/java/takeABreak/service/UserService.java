@@ -23,6 +23,7 @@ import takeABreak.model.repository.UserRepository;
 import java.io.*;
 import java.nio.file.Files;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import javax.imageio.ImageIO;
@@ -152,13 +153,14 @@ public class UserService {
 
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
-        if(!user.isVerify()){
-            throw new BadRequestException("You must verify yor account");
-        }
+
         PasswordEncoder encoder = new BCryptPasswordEncoder();
         //that is missing
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
+        }
+        if(!user.isVerify()){
+            throw new BadRequestException("You must verify yor account");
         }
         return new LoginUserResponseDTO(user);
     }
@@ -167,13 +169,8 @@ public class UserService {
         return new LoginUserResponseDTO(findById(id));
     }
 
-    public byte[] getAvatar(User user) throws IOException {//todo remove
-        File file = new File(user.getAvatar());
-        return Files.readAllBytes(file.toPath());
-    }
-
     public UserDeleteResponseDTO deleteDate(User user) {
-        String date = LocalDate.now().toString();
+        String date = LocalDateTime.now().toString();
         user.setDeletedAt(LocalDate.now());
         user.setAvatar(date);
         user.setCity(null);
@@ -204,7 +201,7 @@ public class UserService {
         if(userDTO.getCountry() >= 0){
             loggedUser.setCountry(countryService.findById(userDTO.getCountry()));
         }
-        if(userDTO.getPassword() != null && userDTO.getFerifyPassword().compareTo(userDTO.getPassword()) == 0){
+        if(userDTO.getPassword() != null && userDTO.getVerifyPassword().compareTo(userDTO.getPassword()) == 0){
             checkForPassword(loggedUser, userDTO);
         }
 
@@ -231,7 +228,6 @@ public class UserService {
     public User findById(int userId) {
         Optional<User> user = repository.findById(userId);
         if(user.isPresent()){
-            System.out.println("и тука");
             return user.get();
         }
         throw  new BadRequestException("No such person");

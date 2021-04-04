@@ -19,7 +19,11 @@ public class FindResponseCommentDTO {
 
     public FindResponseCommentDTO(List<Comment> commentsByUser) {
         this.comments = new ArrayList<>();
-        comments.addAll(commentsByUser);
+        for (Comment c :commentsByUser){
+            if(c.getParent() == null){
+                comments.add(c);
+            }
+        }
     }
 
 }

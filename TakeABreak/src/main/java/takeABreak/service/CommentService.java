@@ -26,13 +26,13 @@ public class CommentService {
     @Autowired
     private CommentsDAO commentsDAO;
 
-    public AddingResponseCommentsDTO addComment(AddingRequestCommentsDTO commentsDTO) {
+    public AddingResponseCommentsDTO addComment(AddingRequestCommentsDTO commentsDTO, User user) {
         commentsDTO.setContent(commentsDTO.getContent().trim());
         if(commentsDTO.getContent() == null || commentsDTO.getContent().equals("")){
             throw new BadRequestException("You cannot make a empty comment");
         }
         Comment comment = new Comment();
-        comment.setUser(userService.findById(commentsDTO.getUserId()));
+        comment.setUser(user);
         comment.setPost(postService.findById(commentsDTO.getPostId()));
         comment.setContent(commentsDTO.getContent());
         comment.setCreatedAt(LocalDate.now());
@@ -43,9 +43,8 @@ public class CommentService {
         return new AddingResponseCommentsDTO(comment);
     }
 
-    public EditResponseCommentDTO editComment(EditRequestCommentDTO commentDTO) {
+    public EditResponseCommentDTO editComment(EditRequestCommentDTO commentDTO, User user) {
         commentDTO.setContent(commentDTO.getContent().trim());
-        User user = userService.findById(commentDTO.getUserId());
         Comment comment = findById(commentDTO.getCommentId());
         if(comment.getUser().getId() != user.getId()){
             throw new BadRequestException("You cannot edit other users comment");
@@ -66,10 +65,9 @@ public class CommentService {
         throw new BadRequestException("No such post");
     }
 
-    public DeleteResponseCommentDTO deleteComment(DeleteRequestCommentDTO commentDTO) {
-        userService.findById(commentDTO.getUserId());
+    public DeleteResponseCommentDTO deleteComment(DeleteRequestCommentDTO commentDTO, User user) {
         Comment comment = findById(commentDTO.getCommentId());
-        if(comment.getUser().getId() != commentDTO.getUserId()){
+        if(comment.getUser().getId() != user.getId()){
             throw new BadRequestException("You cannot edit other users comment");
         }
         commentRepository.delete(comment);
@@ -85,13 +83,12 @@ public class CommentService {
         return new FindResponseCommentDTO(commentsDAO.findByPost(id, page, perpage));
     }
 
-    public GetByIdResponseCommentDTO getById(int id) {
-        return new GetByIdResponseCommentDTO(findById(id),true);
+    public GetResponseCommentDTO getById(int id) {
+        return new GetResponseCommentDTO(findById(id));
     }
 
-    public GetByIdResponseCommentDTO likeComment(int commentId, int userId, User loggedUser) {
+    public GetByIdResponseCommentDTO likeComment(int commentId, User loggedUser) {
         Comment comment = getCommentById(commentId);
-        checkForUser(loggedUser, userId);
         if(!loggedUser.getLikedComments().contains(comment)) {
             loggedUser.getLikedComments().add(comment);
             loggedUser.getDislikedComments().remove(comment);
@@ -103,9 +100,8 @@ public class CommentService {
         return new GetByIdResponseCommentDTO(comment,true);
     }
 
-    public GetByIdResponseCommentDTO dislikeComment(int commentId, int userId, User loggedUser) {
+    public GetByIdResponseCommentDTO dislikeComment(int commentId, User loggedUser) {
         Comment comment = getCommentById(commentId);
-        checkForUser(loggedUser, userId);
         if(!loggedUser.getDislikedComments().contains(comment)) {
             loggedUser.getDislikedComments().add(comment);
             loggedUser.getLikedComments().remove(comment);
@@ -115,13 +111,6 @@ public class CommentService {
         }
         userService.save(loggedUser);
         return new GetByIdResponseCommentDTO(comment,false);
-    }
-
-    public boolean checkForUser(User user, int userId){
-        if(user.getId() != userId){
-            throw new BadRequestException("You cannot like comment from diferent name");
-        }
-        return true;
     }
 
     public Comment getCommentById(int id){

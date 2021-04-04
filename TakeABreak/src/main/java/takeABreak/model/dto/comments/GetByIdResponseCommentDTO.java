@@ -13,10 +13,9 @@ import takeABreak.model.pojo.Comment;
 @Component
 public class GetByIdResponseCommentDTO {
 
-    private LoginUserResponseDTO user;
     private int count;
+
     public GetByIdResponseCommentDTO(Comment comment, Boolean isItLike) {
-        user = new LoginUserResponseDTO(comment.getUser());
         if(isItLike) {
             count = comment.getLikers().size();
         }

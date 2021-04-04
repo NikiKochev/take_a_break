@@ -13,10 +13,8 @@ import takeABreak.model.pojo.User;
 @Setter
 @NoArgsConstructor
 public class DisLikeResponsePostDTO {
-    private LoginUserResponseDTO user;
     private int count;
     public DisLikeResponsePostDTO(Post post, User u, Boolean isItLike) {
-        user = new LoginUserResponseDTO(u);
         if(isItLike) {
             count = post.getLikers().size();
         }

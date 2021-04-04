@@ -21,7 +21,6 @@ public class LoginUserResponseDTO {
     private int id;
     private String firstName;
     private String lastName;
-    private String email;
     private int age;
     private String avatar;
     private LocalDate createdAt;
@@ -34,7 +33,6 @@ public class LoginUserResponseDTO {
         id= user.getId();
         firstName = user.getFirstName();
         lastName = user.getLastName();
-        email = user.getEmail();
         age= user.getAge();
         createdAt = user.getCreatedAt();
         if(user.getCountry() != null) {

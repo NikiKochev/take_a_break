@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AddingRequestCommentsDTO {
 
-    private int userId;
     private int postId;
     private int parentId;
     private String content;

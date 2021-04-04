@@ -14,13 +14,10 @@ import takeABreak.model.pojo.Comment;
 @AllArgsConstructor
 public class EditRequestCommentDTO {
 
-    private int userId;
     private int commentId;
     private String content;
 
     public EditRequestCommentDTO(Comment c) {
-
-        this.userId = c.getUser().getId();
         this.content = c.getContent();
     }
 

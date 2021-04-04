@@ -54,10 +54,10 @@ public class PostDAO {
             words.add(w);
         }
         List<Post> posts = (categoryDAO.getPostByCategory(words,page,perpage));
-        if(posts.size() < page){
+        if(posts.size() < perpage){
             posts.addAll(findByCol(words,page,perpage, "title"));
         }
-        if(posts.size()<page){
+        if(posts.size()< perpage){
             posts.addAll(findByCol(words,page,perpage, "description"));
         }
         return posts;
@@ -76,7 +76,7 @@ public class PostDAO {
     }
 
     private List<Post> findByCol(List<String> text, int page, int perpage, String colName) {
-        StringBuilder query = new StringBuilder("SELECT id FROM posts ");
+        StringBuilder query = new StringBuilder("SELECT id FROM posts");
         for (String word : text){
             query = add(query, word, colName);
         }
@@ -89,7 +89,7 @@ public class PostDAO {
             query.append(" AND ");
         }
         else {
-            query.append("WHERE ");
+            query.append(" WHERE ");
         }
         query.append(" "+colName+" LIKE \"%" + word + "%\"");
         return query;
