@@ -18,7 +18,6 @@ public class UserResponseDTO {
     private int id;
     private String firstName;
     private String lastName;
-    private String email;
     private int age;
     private String avatar;
     private LocalDate createdAt;
@@ -29,7 +28,6 @@ public class UserResponseDTO {
         id = user.getId();
         firstName = user.getFirstName();
         lastName = user.getLastName();
-        email = user.getEmail();
         age = user.getAge();
         avatar = user.getAvatar();
         createdAt = user.getCreatedAt();

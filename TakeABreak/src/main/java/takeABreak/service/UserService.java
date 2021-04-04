@@ -170,11 +170,6 @@ public class UserService {
         return new LoginUserResponseDTO(findById(id));
     }
 
-    public byte[] getAvatar(User user) throws IOException {//todo remove
-        File file = new File(user.getAvatar());
-        return Files.readAllBytes(file.toPath());
-    }
-
     public UserDeleteResponseDTO deleteDate(User user) {
         String date = LocalDateTime.now().toString();
         user.setDeletedAt(LocalDate.now());
@@ -234,7 +229,6 @@ public class UserService {
     public User findById(int userId) {
         Optional<User> user = repository.findById(userId);
         if(user.isPresent()){
-            System.out.println("и тука");
             return user.get();
         }
         throw  new BadRequestException("No such person");

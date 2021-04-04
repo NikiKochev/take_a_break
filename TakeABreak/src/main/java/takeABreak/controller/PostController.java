@@ -73,12 +73,12 @@ public class PostController extends AbstractController{
         return postService.getByUser(id, page, perpage);
     }
 
-    @GetMapping("/posts/{id}/categories/")
+    @GetMapping("/posts/{id}/categories")
     public GetAllByResponsePostDTO getByCategory(@PathVariable(name = "id") int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByCategory(id, page, perpage);
     }
 
-    @GetMapping("/posts/")
+    @GetMapping("/posts")
     public GetAllByResponsePostDTO getLast(@RequestParam int page, @RequestParam int perpage){
         return postService.getByLast(page, perpage);
     }

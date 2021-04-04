@@ -19,32 +19,23 @@ public class CommentController extends AbstractController{
     private SessionManager sessionManager;
     @Autowired
     private CommentService commentService;
-    @Autowired
-    private CommentRepository repository;
 
     @PostMapping("/comments")
     public AddingResponseCommentsDTO add(@RequestBody AddingRequestCommentsDTO commentsDTO, HttpSession session ){
-        if(sessionManager.getLoggedUser(session).getId() != commentsDTO.getUserId()){
-            throw new NotAuthorizedException("You cannot write comment from different name");
-        }
-        return commentService.addComment(commentsDTO);
+        User user = sessionManager.getLoggedUser(session);
+        return commentService.addComment(commentsDTO, user);
     }
 
     @PutMapping("/comments")
     public EditResponseCommentDTO editComment(@RequestBody EditRequestCommentDTO commentDTO, HttpSession session){
-        if(sessionManager.getLoggedUser(session).getId() != commentDTO.getUserId()){
-            throw new BadRequestException("You cannot write comment from different name");
-        }
-        return commentService.editComment(commentDTO);
+        User user = sessionManager.getLoggedUser(session);
+        return commentService.editComment(commentDTO, user);
     }
 
     @DeleteMapping("/comments")
     public DeleteResponseCommentDTO deleteComment (@RequestBody DeleteRequestCommentDTO commentDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        if(user.getId() != commentDTO.getUserId()){
-            throw new NotAuthorizedException("You cannot delete this comment");
-        }
-        return commentService.deleteComment(commentDTO);
+        return commentService.deleteComment(commentDTO, user);
     }
 
     @GetMapping("/comments/user/")
@@ -58,18 +49,18 @@ public class CommentController extends AbstractController{
     }
 
     @PostMapping("/comments/like")
-    public GetByIdResponseCommentDTO like(@RequestParam int userId,@RequestParam int commentId, HttpSession session){
-        return commentService.likeComment(commentId, userId,  sessionManager.getLoggedUser(session));
+    public GetByIdResponseCommentDTO like(@RequestParam int commentId, HttpSession session){
+        return commentService.likeComment(commentId, sessionManager.getLoggedUser(session));
     }
 
     @GetMapping("/comments/{commentId}")
-    public GetByIdResponseCommentDTO getById (@PathVariable(name = "commentId") int commentId){
+    public GetResponseCommentDTO getById (@PathVariable(name = "commentId") int commentId){
         return commentService.getById(commentId);
     }
 
     @PostMapping("/comments/dislike")
-    public GetByIdResponseCommentDTO dislike(@RequestParam int userId,@RequestParam int commentId, HttpSession session){
-        return commentService.dislikeComment(commentId, userId, sessionManager.getLoggedUser(session));
+    public GetByIdResponseCommentDTO dislike(@RequestParam int commentId, HttpSession session){
+        return commentService.dislikeComment(commentId, sessionManager.getLoggedUser(session));
     }
 
 }
