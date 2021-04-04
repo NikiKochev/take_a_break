@@ -37,8 +37,6 @@ public class UserService {
     @Autowired
     private UserRepository repository;
     @Autowired
-    private UserController userController;
-    @Autowired
     private UserDao userDAO;
     @Autowired
     private EmailService emailService;
@@ -158,6 +156,7 @@ public class UserService {
             throw new BadRequestException("You must verify yor account");
         }
         PasswordEncoder encoder = new BCryptPasswordEncoder();
+        //that is missing
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
         }
