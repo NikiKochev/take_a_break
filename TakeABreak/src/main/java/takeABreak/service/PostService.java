@@ -57,8 +57,6 @@ public class PostService {
     @Autowired
     private AddMediaToPostResponseDTO addMediaToPostResponseDTO;
     @Autowired
-    private ContentService contentService;
-    @Autowired
     private UserService userService;
     @Autowired
     private GCloudProperties gCloudProperties;
@@ -434,7 +432,6 @@ public class PostService {
 
     public GetAllByResponsePostDTO getByUser(int userId, int page, int perpage) {
         userService.findById(userId);
-        System.out.println("тука продължава");
         return new GetAllByResponsePostDTO(postDAO.findByUser(userId, page, perpage));
     }
 

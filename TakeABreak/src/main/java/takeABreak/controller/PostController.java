@@ -13,7 +13,6 @@ import takeABreak.model.repository.FileTypeRepository;
 import takeABreak.model.repository.FormatTypeRepository;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.PostService;
-
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileOutputStream;

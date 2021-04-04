@@ -81,9 +81,13 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/user/{id}")
-    public LoginUserResponseDTO editUser(@RequestBody EditResponseUserDTO userDTO, HttpSession session){
+    public LoginUserResponseDTO editUser(@Valid @RequestBody EditResponseUserDTO userDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        return userService.editUser(user, userDTO);
+        LoginUserResponseDTO responseDTO = userService.editUser(user, userDTO);
+        if(userDTO.getPassword() != null){
+            logout(session);
+        }
+        return responseDTO;
     }
 
     @PostMapping("/users/search")

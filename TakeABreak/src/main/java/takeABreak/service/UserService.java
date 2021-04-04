@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import takeABreak.controller.UserController;
 import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.InternalServerErrorException;
@@ -19,17 +20,13 @@ import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.TempDir;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -39,6 +36,8 @@ public class UserService {
     public static final String AVATAR_IMAGE_TYPE = ".png";
     @Autowired
     private UserRepository repository;
+    @Autowired
+    private UserController userController;
     @Autowired
     private UserDao userDAO;
     @Autowired
@@ -155,7 +154,10 @@ public class UserService {
 
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
-        PasswordEncoder encoder = new BCryptPasswordEncoder();;
+        if(!user.isVerify()){
+            throw new BadRequestException("You must verify yor account");
+        }
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new AuthenticationException("wrong credentials");
         }
@@ -166,7 +168,7 @@ public class UserService {
         return new LoginUserResponseDTO(findById(id));
     }
 
-    public byte[] getAvatar(User user) throws IOException {
+    public byte[] getAvatar(User user) throws IOException {//todo remove
         File file = new File(user.getAvatar());
         return Files.readAllBytes(file.toPath());
     }
@@ -203,12 +205,20 @@ public class UserService {
         if(userDTO.getCountry() >= 0){
             loggedUser.setCountry(countryService.findById(userDTO.getCountry()));
         }
-        if(userDTO.getPassword() != null){
-            PasswordEncoder encoder = new BCryptPasswordEncoder();
-            loggedUser.setPassword(encoder.encode(userDTO.getPassword()));
+        if(userDTO.getPassword() != null && userDTO.getFerifyPassword().compareTo(userDTO.getPassword()) == 0){
+            checkForPassword(loggedUser, userDTO);
         }
+
         repository.save(loggedUser);
         return new LoginUserResponseDTO(loggedUser);
+    }
+
+    private void checkForPassword(User loggedUser, EditResponseUserDTO userDTO) {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(userDTO.getOldPassword(), loggedUser.getPassword())) {
+            throw new AuthenticationException("wrong credentials");
+        }
+        loggedUser.setPassword(hashPassword(userDTO.getPassword()));
     }
 
     public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
@@ -221,7 +231,6 @@ public class UserService {
 
     public User findById(int userId) {
         Optional<User> user = repository.findById(userId);
-        System.out.println("тук да авидим за всеки случай");
         if(user.isPresent()){
             System.out.println("и тука");
             return user.get();

@@ -33,7 +33,7 @@ public class User {
     private LocalDate createdAt;
     private LocalDate deletedAt;
     private String city;
-    private String avatar; // url of avatar
+    private String avatar;
     private boolean isAdult;
     private boolean isVerify;
 
