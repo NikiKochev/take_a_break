@@ -21,6 +21,7 @@ public class AddingResponsePostDTO {
     private String description;
     private LocalDate createdAt;
     private SingleCategoryResponseDTO category;
+    private boolean isAdultContent;
     private UserResponseDTO user;
     private Content content;
 
@@ -32,6 +33,7 @@ public class AddingResponsePostDTO {
         description = post.getDescription();;
         createdAt = post.getCreatedAt();
         category = new SingleCategoryResponseDTO(post.getCategory());
+        isAdultContent = post.isAdultContent();
         user = new UserResponseDTO(post.getUser());
         content = post.getContent();
 

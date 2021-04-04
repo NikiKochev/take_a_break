@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 public class DeleteRequestPostDTO {
 
     private int postId;
-    private int userId;
     /*
     {
     "post_id" : 3

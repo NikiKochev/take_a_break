@@ -1,8 +1,6 @@
 package takeABreak.model.dto.user;
 
-
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,23 +14,21 @@ import javax.validation.constraints.Size;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Component
-public class RegisterRequestUserDTO {
+public class EditRequestUserDTO {
 
     private String firstName;
     private String lastName;
-
-    @NotEmpty
     @Email(regexp = "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}")
     private String email;
     private int age;
-    @NotEmpty
+    private String oldPassword;
     @Pattern(regexp = "((?=.*[a-z])(?=.*\\d)(?=.*[A-Z]).{8,40})")
     @Size(min = 8,max = 40, message = "password must be at least 6 characters an to have one upper letter, one lower letter and one digit" )
     private String password;
-    @NotEmpty
-    @Size(min = 8,max = 40, message = "password must be at least 6 characters an to have one upper letter, one lower letter and one digit" )
-    private String confirmPassword;
-    private boolean isAdult;
+    private String verifyPassword;
+    private int country;
+    private String city;
 
 }

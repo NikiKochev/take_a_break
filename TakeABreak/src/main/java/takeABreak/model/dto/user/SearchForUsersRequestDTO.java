@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import takeABreak.model.pojo.Country;
 
 @Setter
 @Getter
@@ -16,9 +17,9 @@ public class SearchForUsersRequestDTO {
     private String firstName;
     private String lastName;
     private String email;
-    private int age;
+    private Integer age;
     private String city;
-    private String country;
+    private Integer country;
     private int page;
     private int perpage;
     /*{

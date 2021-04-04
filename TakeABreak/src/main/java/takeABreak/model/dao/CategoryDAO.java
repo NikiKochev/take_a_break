@@ -18,7 +18,7 @@ public class CategoryDAO {
     private PostDAO postDAO;
 
     public List<Post> getPostByCategory(List<String> text, int page, int perpage) {
-        StringBuilder query = new StringBuilder("SELECT id FROM posts JOIN categories ON (categories_id = id) GROUP BY name ");
+        StringBuilder query = new StringBuilder("SELECT posts.id FROM posts JOIN categories ON (categories_id = categories.id) GROUP BY categories.name ");
         for (String word : text){
             query = add(query, word);
         }

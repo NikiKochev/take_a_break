@@ -30,7 +30,7 @@ public class User {
     private LocalDate createdAt;
     private LocalDate deletedAt;
     private String city;
-    private String avatar; // url of avatar
+    private String avatar;
     private boolean isAdult;
     private boolean isVerify;
 
@@ -51,7 +51,7 @@ public class User {
     @JoinTable(
             name = "users_like_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn (name = "coments_id")}
+            inverseJoinColumns = {@JoinColumn (name = "comments_id")}
     )
     @JsonManagedReference
     private List<Comment> likedComments;
@@ -60,7 +60,7 @@ public class User {
     @JoinTable(
             name = "users_dislike_comments",
             joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn (name = "coments_id")}
+            inverseJoinColumns = {@JoinColumn (name = "comments_id")}
     )
     @JsonManagedReference
     private List<Comment> dislikedComments;
@@ -83,7 +83,7 @@ public class User {
     @JsonManagedReference
     private List<Post> dislikedPosts;
 
-    public User(RegisterRequestUserDTO dto){
+    public User(RegisterRequestUserDTO dto,String verificationCode){
         firstName = dto.getFirstName();
         lastName = dto.getLastName();
         email = dto.getEmail();
@@ -92,6 +92,7 @@ public class User {
         createdAt = LocalDate.now();
         isAdult = dto.isAdult();
         isVerify = false;
+        this.verification = verificationCode;
     }
 
 }

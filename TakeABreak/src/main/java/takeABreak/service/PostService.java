@@ -36,7 +36,6 @@ import java.util.Optional;
 import static takeABreak.conf.VideoImage.randomGrabberFFmpegImage;
 
 import com.cloudmersive.client.invoker.ApiClient;
-import com.cloudmersive.client.invoker.ApiException;
 import com.cloudmersive.client.invoker.Configuration;
 import com.cloudmersive.client.invoker.auth.*;
 import com.cloudmersive.client.VideoApi;
@@ -79,13 +78,13 @@ public class PostService {
 
         List<Content> contentWithSession = contentRepository.findAllBySession(sessionId);
 
-        if (contentWithSession.size() == 0){
+        if (contentWithSession.size() == 0) {
             throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
         }
 
-        Content content = contentWithSession.get(contentWithSession.size()-1);
+        Content content = contentWithSession.get(contentWithSession.size() - 1);
 
-        if (!content.getSession().equals(sessionId) || content.getId() != postDTO.getContentId()){
+        if (!content.getSession().equals(sessionId) || content.getId() != postDTO.getContentId()) {
             throw new BadRequestException("Invalid session for that content. Try to logout and login again.");
         }
 
@@ -424,6 +423,81 @@ public class PostService {
         return addMediaToPostResponseDTO;
     }
 
+    public AddingResponsePostDTO editPost(EditingRequestPostDTO postDTO, User user, String sessionId){
+
+        Post postOld = new Post();
+        Optional<Post> postOldOps = postRepository.findById(postDTO.getPostId());
+        if (postOldOps.isPresent()) {
+            postOld = postOldOps.get();
+        }else{
+            throw new BadRequestException("Non existing post");
+        }
+
+        //check credentials (Is the user owner of the post)
+        if (user.getId() != postOld.getUser().getId()){
+            throw new NotAuthorizedException("You are not the owner of the post.");
+        }
+
+        //editing post
+        Post post = new Post();
+
+        if(postDTO.getContentId() != 0) {
+            List<Content> contentWithSession = contentRepository.findAllBySession(sessionId);
+            if (contentWithSession.size() == 0) {
+                throw new NotAuthorizedException("Invalid session for that content. Try to logout and login again.");
+            }
+
+            Content content = contentWithSession.get(contentWithSession.size() - 1);
+
+            if (!content.getSession().equals(sessionId) || content.getId() != postDTO.getContentId()) {
+                throw new NotAuthorizedException("Invalid session for that content. Try to logout and login again.");
+            }
+            post.setContent(content);
+        }else{
+           Optional<Content> contentOps = contentRepository.findById(postOld.getContent().getId());
+            if (contentOps.isPresent()){
+                Content content = contentOps.get();
+                post.setContent(content);
+            }
+        }
+
+        if(postDTO.getDescription() != null){
+            post.setDescription(postDTO.getDescription());
+        }else{
+            post.setDescription(postOld.getDescription());
+        }
+
+        if (postDTO.getTitle() != null){
+            post.setTitle(postDTO.getTitle());
+        }else{
+            post.setTitle(postOld.getTitle());
+        }
+
+        if (postDTO.getCategoryId() != 0){
+            Optional<Category> categoryOps = categoryRepository.findById(postDTO.getCategoryId());
+            if (categoryOps.isPresent()){
+                Category category = categoryOps.get();
+                post.setCategory(category);
+            }
+        }else{
+            Optional<Category> categOps = categoryRepository.findById(postDTO.getPostId());
+            if (categOps.isPresent()){
+                Category categOld = categOps.get();
+                post.setCategory(categOld);
+            }
+        }
+
+        post.setCreatedAt(postOld.getCreatedAt());
+
+        post.setId(postDTO.getPostId());
+
+        post.setUser(user);
+
+        postRepository.save(post);
+
+        return new AddingResponsePostDTO(post);
+    }
+
     public DisLikeResponsePostDTO dislikeComment(DisLikeRequestPostDTO postDTO, User user) {
         Post post = findById(postDTO.getPostId());
         if(!user.getDislikedPosts().contains(post)) {
@@ -475,12 +549,10 @@ public class PostService {
     @Transactional
     public DeleteResponsePostDTO deletePost(DeleteRequestPostDTO postDTO, User user) {
         Post post = findById(postDTO.getPostId());
-        if(user.getPosts().contains(post)){
-            throw new NotAuthorizedException("You cannot delete post of others");
+        if(!user.getPosts().contains(post)){
+            throw new NotAuthorizedException("Trying to delete a post that you are not an owner of.");
         }
-        user.getPosts().remove(post);
         postRepository.delete(post);
-        userService.save(user);
         return new DeleteResponsePostDTO("Post is deleted");
     }
 

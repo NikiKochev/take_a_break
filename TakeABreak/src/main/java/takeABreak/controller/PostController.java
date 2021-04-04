@@ -3,11 +3,9 @@ package takeABreak.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import takeABreak.exceptions.NotAuthorizedException;
 import takeABreak.model.dto.post.*;
 import takeABreak.model.pojo.User;
 import takeABreak.service.PostService;
-
 import javax.servlet.http.HttpSession;
 
 
@@ -19,7 +17,7 @@ public class PostController extends AbstractController{
     @Autowired
     private PostService postService;
 
-    @PutMapping("/posts")
+    @PutMapping("/posts/add")
     public AddingResponsePostDTO addPost(@RequestBody AddingRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
         String sessionId = session.getId();
@@ -40,7 +38,14 @@ public class PostController extends AbstractController{
         return postService.addVideoToPost(file, sessionId);
     }
 
-    @DeleteMapping("/posts")
+    @PutMapping("/posts/edit")
+    public AddingResponsePostDTO editPost(@RequestBody EditingRequestPostDTO postDTO, HttpSession session){
+        User user = sessionManager.getLoggedUser(session);
+        String sessionId = session.getId();
+        return postService.editPost(postDTO, user, sessionId);
+    }
+
+    @DeleteMapping("/posts/delete")
     public DeleteResponsePostDTO deletePost(@RequestBody DeleteRequestPostDTO postDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
         return postService.deletePost(postDTO, user);
@@ -58,18 +63,18 @@ public class PostController extends AbstractController{
         return postService.likeComment(postDTO, user);
     }
 
-    @GetMapping("posts/{id}")
+    @GetMapping("/posts/{id}")
     public GetByIdResponsePostDTO getById(@PathVariable int id){
         return postService.getById(id);
     }
 
-    @GetMapping("posts/{id}/users")
+    @GetMapping("/posts/{id}/users")
     public GetAllByResponsePostDTO getByUser(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByUser(id, page, perpage);
     }
 
-    @GetMapping("posts/categories/{id}/")
-    public GetAllByResponsePostDTO getByCategory(@PathVariable int id, @RequestParam int page, @RequestParam int perpage){
+    @GetMapping("/posts/{id}/categories/")
+    public GetAllByResponsePostDTO getByCategory(@PathVariable(name = "id") int id, @RequestParam int page, @RequestParam int perpage){
         return postService.getByCategory(id, page, perpage);
     }
 

@@ -19,17 +19,14 @@ import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.TempDir;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -49,40 +46,35 @@ public class UserService {
     private GCloudProperties gCloudProperties;
 
     public RegisterResponseUserDTO addUser(RegisterRequestUserDTO userDTO) {
-        validationEmail(userDTO.getEmail());
+        checkForPropertyCredential(userDTO);
+        userDTO.setPassword(hashPassword(userDTO.getPassword()));
+        User user = new User(userDTO,verificationCode());
+        repository.save(user);
+        sendEmail(user);
+        return new RegisterResponseUserDTO(user);
+    }
+
+    private void sendEmail(User user) {
+        Thread t= new Thread(() -> emailService.sendSimpleMessage(user));
+        t.start();
+    }
+
+    private void checkForPropertyCredential(RegisterRequestUserDTO userDTO) {
         if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
             throw new BadRequestException("Passwords are not equals");
-        }
-        if (!userDTO.getPassword().equals(userDTO.getPassword().toLowerCase())
-                & !userDTO.getPassword().equals(userDTO.getPassword().toUpperCase())
-                & userDTO.getPassword().matches("-?\\d+(\\.\\d+)?")) {
-            throw new BadRequestException("Wrong credential. Must have digits, upper and lower character at password");
         }
         if (repository.findByEmail(userDTO.getEmail()) != null) {
             throw new BadRequestException("You already have account");
         }
+    }
+
+    private String hashPassword(String password) {
         PasswordEncoder encoder = new BCryptPasswordEncoder();
-        userDTO.setPassword(encoder.encode(userDTO.getPassword()));
-        User user = new User(userDTO);
-        String randomCode = RandomString.make(64);
-        user.setVerification(randomCode);
-        repository.save(user);
-        Thread t= new Thread(() -> emailService.sendSimpleMessage(user));
-        t.start();
-        RegisterResponseUserDTO responseUserDTO = new RegisterResponseUserDTO(user);
-        return responseUserDTO;
+        return encoder.encode(password);
     }
 
-    private String validationEmail(String email) {
-        if(!validEmail(email)){
-            throw new BadRequestException("You must enter a valid e-mail");
-        }
-        return email;
-    }
-
-    public boolean validEmail(String email) {
-        String regEmail = "^([_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(\\.[a-zA-Z]{1,6}))?$".toLowerCase();
-        return email.matches(regEmail);
+    private String verificationCode() {
+        return RandomString.make(64);
     }
 
     public UploadAvatarDTO addAvatar(MultipartFile multipartFile, User user) {
@@ -160,19 +152,17 @@ public class UserService {
 
     public LoginUserResponseDTO login(LoginUserRequestDTO dto) {
         User user = repository.findByEmail(dto.getEmail());
-        PasswordEncoder encoder = new BCryptPasswordEncoder();;
 
-        //testing GIT
-
-        int testingGit = 5;
-
-        //testing GIT
-
-
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
 
         if (user == null || !encoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new AuthenticationException("wrong credentials");
+            throw new AuthenticationException("Wrong credentials");
         }
+
+        if(!user.isVerify()){
+            throw new BadRequestException("You must verify your account");
+        }
+
         return new LoginUserResponseDTO(user);
     }
 
@@ -180,24 +170,25 @@ public class UserService {
         return new LoginUserResponseDTO(findById(id));
     }
 
-    public byte[] getAvatar(User user) throws IOException {
+    public byte[] getAvatar(User user) throws IOException {//todo remove
         File file = new File(user.getAvatar());
         return Files.readAllBytes(file.toPath());
     }
 
     public UserDeleteResponseDTO deleteDate(User user) {
+        String date = LocalDateTime.now().toString();
         user.setDeletedAt(LocalDate.now());
-        user.setAvatar(null);
+        user.setAvatar(date);
         user.setCity(null);
         user.setCountry(null);
-        user.setEmail(null);
+        user.setEmail(date);
         user.setFirstName(null);
         user.setLastName(null);
         repository.save(user);
         return new UserDeleteResponseDTO(user);
     }
 
-    public LoginUserResponseDTO editUser(User loggedUser, EditResponseUserDTO userDTO) {
+    public LoginUserResponseDTO editUser(User loggedUser, EditRequestUserDTO userDTO) {
         if(userDTO.getAge() != 0){
             loggedUser.setAge(userDTO.getAge());
         }
@@ -216,12 +207,20 @@ public class UserService {
         if(userDTO.getCountry() >= 0){
             loggedUser.setCountry(countryService.findById(userDTO.getCountry()));
         }
-        if(userDTO.getPassword() != null){
-            PasswordEncoder encoder = new BCryptPasswordEncoder();
-            loggedUser.setPassword(encoder.encode(userDTO.getPassword()));
+        if(userDTO.getPassword() != null && userDTO.getVerifyPassword().compareTo(userDTO.getPassword()) == 0){
+            checkForPassword(loggedUser, userDTO);
         }
+
         repository.save(loggedUser);
         return new LoginUserResponseDTO(loggedUser);
+    }
+
+    private void checkForPassword(User loggedUser, EditRequestUserDTO userDTO) {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(userDTO.getOldPassword(), loggedUser.getPassword())) {
+            throw new AuthenticationException("wrong credentials");
+        }
+        loggedUser.setPassword(hashPassword(userDTO.getPassword()));
     }
 
     public SearchForUsersResponseDTO findUsers(SearchForUsersRequestDTO searchDTO) {
@@ -235,6 +234,7 @@ public class UserService {
     public User findById(int userId) {
         Optional<User> user = repository.findById(userId);
         if(user.isPresent()){
+            System.out.println("и тука");
             return user.get();
         }
         throw  new BadRequestException("No such person");

@@ -2,16 +2,15 @@ package takeABreak.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import takeABreak.exceptions.AuthenticationException;
 import takeABreak.exceptions.BadRequestException;
 import takeABreak.model.dto.user.*;
 import takeABreak.model.pojo.User;
 import takeABreak.model.repository.UserRepository;
 import takeABreak.service.UserService;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import javax.websocket.server.PathParam;
 import java.util.Optional;
 
@@ -28,7 +27,7 @@ public class UserController extends AbstractController{
     @Autowired
     private SessionManager sessionManager;
     @PutMapping("/user")
-    public RegisterResponseUserDTO register(@RequestBody RegisterRequestUserDTO userDTO){
+    public RegisterResponseUserDTO register(@Valid @RequestBody RegisterRequestUserDTO userDTO){
         return userService.addUser(userDTO);
     }
 
@@ -80,9 +79,13 @@ public class UserController extends AbstractController{
     }
 
     @PutMapping("/user/{id}")
-    public LoginUserResponseDTO editUser(@RequestBody EditResponseUserDTO userDTO, HttpSession session){
+    public LoginUserResponseDTO editUser(@Valid @RequestBody EditRequestUserDTO userDTO, HttpSession session){
         User user = sessionManager.getLoggedUser(session);
-        return userService.editUser(user, userDTO);
+        LoginUserResponseDTO responseDTO = userService.editUser(user, userDTO);
+        if(userDTO.getPassword() != null){
+            logout(session);
+        }
+        return responseDTO;
     }
 
     @PostMapping("/users/search")

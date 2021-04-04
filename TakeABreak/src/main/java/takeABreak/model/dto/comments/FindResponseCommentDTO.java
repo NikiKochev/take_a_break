@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Component;
 import takeABreak.model.pojo.Comment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -17,6 +18,7 @@ public class FindResponseCommentDTO {
     private List<Comment> comments;
 
     public FindResponseCommentDTO(List<Comment> commentsByUser) {
+        this.comments = new ArrayList<>();
         comments.addAll(commentsByUser);
     }
 

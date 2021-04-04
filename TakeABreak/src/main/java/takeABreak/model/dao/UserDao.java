@@ -5,9 +5,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import takeABreak.exceptions.BadRequestException;
 import takeABreak.exceptions.NotFoundException;
 import takeABreak.model.dto.user.SearchForUsersRequestDTO;
-import takeABreak.model.pojo.Post;
 import takeABreak.model.pojo.User;
 import takeABreak.service.UserService;
 
@@ -24,36 +24,39 @@ public class UserDao {
     private UserService userService;
     @Autowired
     private DBCredentials credentials;
-
+    private boolean isItFirst = true;
 
     public List<User> findBy(SearchForUsersRequestDTO searchDTO){
         StringBuilder query = new StringBuilder("SELECT id FROM users WHERE ");
-        String firsName = searchDTO.getFirstName();
-        if(firsName != null && !firsName.trim().equals("")){
-            query = add(query , "first_name", searchDTO.getFirstName());
-        }
-        String lastName = searchDTO.getLastName();
-        if(lastName!= null && !lastName.trim().equals("")){
-            query = add(query, "last_name", searchDTO.getLastName());
-        }
-        String email = searchDTO.getEmail();
-        if(email!= null && !email.trim().equals("")){
-            query = add(query, "email", searchDTO.getEmail());
-        }
-        String city = searchDTO.getCity();
-        if(city!= null && !city.trim().equals("") ){
-            query = add(query, "city", city);
-        }
-        String country = searchDTO.getCountry();
-        if(country!= null && !country.trim().equals("")){
-            query = add(query, "country", searchDTO.getCountry());
-        }
-        if(searchDTO.getAge() != 0){
-            query.append(" AND age = "+searchDTO.getAge());
-        }
+        query = checkString("first_name",query,searchDTO.getFirstName());
+        query = checkString("last_name",query,searchDTO.getLastName());
+        query = checkString("email",query,searchDTO.getEmail());
+        query = checkString("city",query,searchDTO.getCity());
+        query = checkInt("country", query,searchDTO.getCountry());
+        query = checkInt("age",query,searchDTO.getAge());
         query.append(" LIMIT "+ (searchDTO.getPage()*searchDTO.getPerpage() - searchDTO.getPerpage())+ ", "+ searchDTO.getPerpage());
+        if(isItFirst){
+            throw new BadRequestException("no parameters");
+        }
+        isItFirst = true;
        return find(query.toString());
     }
+
+    public StringBuilder checkInt(String colName, StringBuilder query, Integer name){
+        if(name != null && name > 0){
+            query.append((isItFirst ? " " : " AND ")+colName+" = "+ name);
+            isItFirst = false;
+        }
+        return query;
+    }
+
+    public StringBuilder checkString(String colName, StringBuilder query, String name){
+         if(name != null && !name.trim().equals("")){
+             query = add(query, colName, name);
+             isItFirst = false;
+         }
+         return query;
+     }
 
     public List<User> find(String find) {
         List<User> users = new ArrayList<>();
@@ -69,8 +72,8 @@ public class UserDao {
         return users;
     }
 
-    private StringBuilder add(StringBuilder query, String colName, String value) {
-        if(query.compareTo(new StringBuilder("SELECT id FROM users WHERE ")) != 0){
+    public StringBuilder add(StringBuilder query, String colName, String value) {
+        if(!isItFirst){
             query.append(" AND ");
         }
         query.append(colName + " LIKE \"%" + value + "%\"");
