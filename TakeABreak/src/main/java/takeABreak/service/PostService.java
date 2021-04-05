@@ -157,11 +157,11 @@ public class PostService {
             biOriginalImg = ImageIO.read(originalFile);double widthDouble = biOriginalImg.getWidth();
             double heightDouble = biOriginalImg.getHeight();
             if(widthDouble / heightDouble < 0.25 || widthDouble / heightDouble > 4){
-                throw new BadRequestException("The image should be with max 1:4 or 4:1 ratio.");
+                throw new BadRequestException("Try with different file or file that is between 1:4 or 4:1 ratio.");
             }
             biOriginalImg.flush();
         } catch (Exception e) {
-            throw new InternalServerErrorException("The image should be with max 1:4 or 4:1 ratio.");
+            throw new InternalServerErrorException(e.getMessage());
         }
 
         //file names
@@ -463,6 +463,7 @@ public class PostService {
     public AddingResponsePostDTO editPost(EditingRequestPostDTO postDTO, User user, String sessionId){
 
         Post postOld = new Post();
+
         Optional<Post> postOldOps = postRepository.findById(postDTO.getPostId());
         if (postOldOps.isPresent()) {
             postOld = postOldOps.get();
