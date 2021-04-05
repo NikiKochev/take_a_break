@@ -62,7 +62,7 @@ public class CommentService {
         if(com.isPresent()){
            return com.get();
         }
-        throw new BadRequestException("No such post");
+        throw new BadRequestException("No such comment");
     }
 
     public DeleteResponseCommentDTO deleteComment(DeleteRequestCommentDTO commentDTO, User user) {
