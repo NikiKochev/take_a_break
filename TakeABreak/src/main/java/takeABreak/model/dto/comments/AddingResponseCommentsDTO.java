@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @Component
 public class AddingResponseCommentsDTO {
 
+    private int commentId;
     private int ownerId;
     private int parentId;
     private int postId;
@@ -21,6 +22,7 @@ public class AddingResponseCommentsDTO {
     private LocalDate createdAt;
 
     public AddingResponseCommentsDTO(Comment comment) {
+        commentId=comment.getId();
         ownerId = comment.getUser().getId();
         if(comment.getParent() !=null) {
             parentId = comment.getParent().getId();
