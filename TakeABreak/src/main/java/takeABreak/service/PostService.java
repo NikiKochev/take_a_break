@@ -161,8 +161,7 @@ public class PostService {
             }
             biOriginalImg.flush();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new InternalServerErrorException("The server experienced some difficulties, try again later.");
+            throw new InternalServerErrorException("The image should be with max 1:4 or 4:1 ratio.");
         }
 
         //file names
