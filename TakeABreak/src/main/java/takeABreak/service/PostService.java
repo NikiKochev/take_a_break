@@ -460,6 +460,7 @@ public class PostService {
         return addMediaToPostResponseDTO;
     }
 
+    @Transactional
     public AddingResponsePostDTO editPost(EditingRequestPostDTO postDTO, User user, String sessionId){
 
         Post postOld = new Post();
