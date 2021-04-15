@@ -119,13 +119,7 @@ public class PostService {
         extension = extension.toLowerCase();
 
         //check if the file format is supported
-        HashSet<String> supportedImageFormats = new HashSet();
-        supportedImageFormats.add("jpg");
-        supportedImageFormats.add("jpeg");
-        supportedImageFormats.add("gif");
-        supportedImageFormats.add("mbp");
-        supportedImageFormats.add("wbmp");
-        supportedImageFormats.add("png");
+        List<String> supportedImageFormats = List.of("jpg", "jpeg", "gif", "mbp", "wbmp", "png");
         if(!supportedImageFormats.contains(extension)){
             throw new BadRequestException("Unsupported file type. Please upload an image file in JPEG, PNG, BMP, WBMP or GIF format");
         }
@@ -247,11 +241,8 @@ public class PostService {
         try {
             BufferedImage biOriginalImg = ImageIO.read(originalFile);
 
-            //in case the image is NOT GIF or JPG, convert it to JPG
-            HashSet<String> typesToBeConverted = new HashSet<>();
-            typesToBeConverted.add("mbp");
-            typesToBeConverted.add("png");
-            typesToBeConverted.add("wbmp");
+            //in case the image is NOT JPG, convert it to JPG
+            List<String> typesToBeConverted = List.of("mbp", "png", "wbmp");
 
             if(typesToBeConverted.contains(extension)){
                 File copiedFile = new File(dir + File.separator + originalName + "_copy." + extension);
@@ -264,38 +255,21 @@ public class PostService {
                 extension = "jpg";
             }
 
-            //resize and save in small size
-            File file = new File(dir + File.separator + originalName + "." + extension);
-            BufferedImage biOriginalSize = ImageIO.read(file);
-            File smallSize = new File(dir + File.separator + originalName + "_" + SMALL_SIZE_CODE + STILL_IMAGE_TYPE);
-            if(biOriginalImg.getWidth() > SMALL_SIZE_WIGHT) {
-                BufferedImage biSmallSize = Scalr.resize(biOriginalSize, SMALL_SIZE_WIGHT);
-                ImageIO.write(biSmallSize, extension, smallSize);
-                biSmallSize.flush();
-            }else{
-                ImageIO.write(biOriginalSize, extension, smallSize);
-            }
-            //resize and save in medium size
-            File mediumSize = new File(dir + File.separator + originalName + "_" + MEDIUM_SIZE_CODE + STILL_IMAGE_TYPE);
-            if(biOriginalImg.getWidth() > MEDIUM_SIZE_WIGHT) {
-                BufferedImage biMediumSize = Scalr.resize(biOriginalSize, MEDIUM_SIZE_WIGHT);
-                ImageIO.write(biMediumSize, extension, mediumSize);
-                biMediumSize.flush();
-            }else{
-                ImageIO.write(biOriginalSize, extension, mediumSize);
-            }
+            //resize in all sizes
+            List<Integer> resizedSizesCodes  = List.of(SMALL_SIZE_CODE, MEDIUM_SIZE_CODE, LARGE_SIZE_CODE);
+            List<Integer> resizedSizesWight  = List.of(SMALL_SIZE_WIGHT, MEDIUM_SIZE_WIGHT, LARGE_SIZE_WIGHT);
 
-            if (isThumbnail){
-                return;
-            }
-            //resize and save in large size
-            File largeSize = new File(dir + File.separator + originalName + "_" + LARGE_SIZE_CODE + STILL_IMAGE_TYPE);
-            if(biOriginalImg.getWidth() > LARGE_SIZE_WIGHT) {
-                BufferedImage biLargeSize = Scalr.resize(biOriginalSize, LARGE_SIZE_WIGHT);
-                ImageIO.write(biLargeSize, extension, largeSize);
-                biLargeSize.flush();
-            }else{
-                ImageIO.write(biOriginalSize, extension, largeSize);
+            for (int i = 0; i < resizedSizesCodes.size(); i++) {
+                File file = new File(dir + File.separator + originalName + "." + extension);
+                BufferedImage biOriginalSize = ImageIO.read(file);
+                File newSize = new File(dir + File.separator + originalName + "_" + resizedSizesCodes.get(i) + STILL_IMAGE_TYPE);
+                if(biOriginalImg.getWidth() > resizedSizesWight.get(i)) {
+                    BufferedImage biSmallSize = Scalr.resize(biOriginalSize, resizedSizesWight.get(i));
+                    ImageIO.write(biSmallSize, extension, newSize);
+                    biSmallSize.flush();
+                }else{
+                    ImageIO.write(biOriginalSize, extension, newSize);
+                }
             }
 
         } catch (Exception e) {
@@ -335,18 +309,7 @@ public class PostService {
         extension = extension.toLowerCase();
 
         //check if the file format is supported
-        HashSet<String> supportedImageFormats = new HashSet();
-        supportedImageFormats.add("avi");
-        supportedImageFormats.add("asf");
-        supportedImageFormats.add("flv");
-        supportedImageFormats.add("mp4");
-        supportedImageFormats.add("mpeg");
-        supportedImageFormats.add("mpg");
-        supportedImageFormats.add("webm");
-        supportedImageFormats.add("3g2");
-        supportedImageFormats.add("mkv");
-        supportedImageFormats.add("m4v");
-        supportedImageFormats.add("mov");
+        List<String> supportedImageFormats = List.of("avi", "asf","flv", "mp4", "mpeg", "mpg", "webm", "3g2", "mkv", "m4v", "mov");
         if(!supportedImageFormats.contains(extension)){
             throw new BadRequestException("Unsupported file type.");
         }

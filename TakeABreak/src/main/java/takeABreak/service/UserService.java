@@ -20,6 +20,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -79,13 +80,7 @@ public class UserService {
         extension = extension.toLowerCase();
 
         //check if the file format is supported
-        HashSet<String> supportedImageFormats = new HashSet();
-        supportedImageFormats.add("jpg");
-        supportedImageFormats.add("jpeg");
-        supportedImageFormats.add("gif");
-        supportedImageFormats.add("mbp");
-        supportedImageFormats.add("wbmp");
-        supportedImageFormats.add("png");
+        List<String> supportedImageFormats = List.of("jpg", "jpeg", "gif", "mbp", "wbmp", "png");
         if(!supportedImageFormats.contains(extension)){
             throw new BadRequestException("Unsupported file type. Please upload an image file in JPEG, PNG, BMP, WBMP or GIF format");
         }
