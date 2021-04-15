@@ -1,4 +1,4 @@
-package takeABreak.conf;
+package takeABreak.model.pojo;
 
 
 import java.awt.image.BufferedImage;

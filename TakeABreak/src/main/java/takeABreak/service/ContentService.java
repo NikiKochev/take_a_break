@@ -8,12 +8,13 @@ import takeABreak.model.repository.ContentRepository;
 
 @Service
 public class ContentService {
+
     @Autowired
     private ContentRepository contentRepository;
 
     public Content findById(int contentId) {
         if(!contentRepository.findById(contentId).isPresent()){
-            throw new BadRequestException("mo picture or video to upload");
+            throw new BadRequestException("No picture or video to upload");
         }
         return contentRepository.findById(contentId).get();
     }

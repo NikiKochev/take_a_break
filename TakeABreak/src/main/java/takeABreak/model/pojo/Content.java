@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -24,6 +26,8 @@ public class Content {
     @JsonIgnore
     private String session;
 
+    private LocalDateTime createdAt;
+
     @OneToOne(mappedBy = "content")
     @JsonBackReference
     private Post post;
@@ -33,8 +37,8 @@ public class Content {
     @JsonBackReference
     private FileType fileType;
 
-
     @OneToMany (mappedBy = "content")
     @JsonManagedReference
     private List<FormatType> formatTypes;
+
 }

@@ -23,12 +23,13 @@ import java.awt.image.BufferedImage;
 import javax.transaction.Transactional;
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static takeABreak.conf.VideoImage.randomGrabberFFmpegImage;
+import static takeABreak.model.pojo.VideoImage.randomGrabberFFmpegImage;
 
 import com.cloudmersive.client.invoker.ApiClient;
 import com.cloudmersive.client.invoker.Configuration;
@@ -38,6 +39,7 @@ import com.cloudmersive.client.VideoApi;
 
 @Service
 public class PostService {
+
     public static final String STILL_IMAGE_TYPE = ".jpg";
     public static final int SMALL_SIZE_WIGHT = 460;
     public static final int MEDIUM_SIZE_WIGHT = 650;
@@ -140,8 +142,6 @@ public class PostService {
         imageCode = imageCode.substring(imageCode.length()-8);
         String originalName = sessionId + "_" + imageCode;
 
-
-
         String locationOriginalImg = dir + File.separator + originalName + "." + extension;
         File originalFile = new File(locationOriginalImg);
         try(OutputStream originalFileOutputStream = new FileOutputStream(originalFile);){
@@ -152,11 +152,12 @@ public class PostService {
         }
 
         //check for the image ratio. Should be max 1:4
-        BufferedImage biOriginalImg = null;
         try {
-            biOriginalImg = ImageIO.read(originalFile);double widthDouble = biOriginalImg.getWidth();
+            BufferedImage biOriginalImg = ImageIO.read(originalFile);
+            double widthDouble = biOriginalImg.getWidth();
             double heightDouble = biOriginalImg.getHeight();
             if(widthDouble / heightDouble < 0.25 || widthDouble / heightDouble > 4){
+                originalFile.delete();
                 throw new BadRequestException("Try with different file or file that is between 1:4 or 4:1 ratio.");
             }
             biOriginalImg.flush();
@@ -216,6 +217,7 @@ public class PostService {
         int imageCodeInt = Integer.parseInt(imageCode);
         content.setId(imageCodeInt);
         content.setSession(sessionId);
+        content.setCreatedAt(LocalDateTime.now());
         contentRepository.save(content);
 
         //make 4 formatType objects and save them in DB
@@ -446,6 +448,7 @@ public class PostService {
         int imageCodeInt = Integer.parseInt(mediaCode);
         content.setId(imageCodeInt);
         content.setSession(sessionId);
+        content.setCreatedAt(LocalDateTime.now());
         contentRepository.save(content);
 
         //make 4 formatType objects and save them in DB
@@ -453,6 +456,7 @@ public class PostService {
 
             String url = gCloud.getCloudBucketUrl() + fileNamesWithExtension.get(i-1);
             formatTypeDAO.saveFormatType(i+4, url, content.getId());
+
         }
 
         addMediaToPostResponseDTO.setContentId(content.getId());
